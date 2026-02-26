@@ -2,6 +2,8 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
+#include "checkerror.h"
+
 
 void frameSizeCallback(GLFWwindow* window, int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -32,7 +34,8 @@ int main() {
     }
     glfwSetFramebufferSizeCallback(window, frameSizeCallback);
     glfwSetKeyCallback(window, keyCallBack);
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    LWGLCALL(glClear(-1));
 
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
