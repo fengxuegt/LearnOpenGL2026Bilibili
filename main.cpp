@@ -3,48 +3,34 @@
 #include<GLFW/glfw3.h>
 
 #include "checkerror.h"
+#include "application.h"
 
 
-void frameSizeCallback(GLFWwindow* window, int width, int height) {
+void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
     glViewport(0, 0, width/2, height);
 }
 
-void keyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    glfwSetWindowShouldClose(window, GLFW_TRUE);
-    }
+void keyCallBack(int key, int scancode, int action, int mods) {
+    std::cout << key << " " << scancode << " " << action << " " << mods << std::endl;
 }
 
 
 
 int main() {
-
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    GLFWwindow * window = glfwCreateWindow(800, 600, "OpenGL", NULL, NULL);
-    glfwMakeContextCurrent(window);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+    if (!LWAPP->init("OpenGL basic", 800, 600)) {
         return -1;
     }
-    glfwSetFramebufferSizeCallback(window, frameSizeCallback);
-    glfwSetKeyCallback(window, keyCallBack);
-    // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    LWGLCALL(glClear(-1));
+    LWAPP->setFrameBufferSizeCallback(frameSizeCallback);
+    LWAPP->setKeyCallBack(keyCallBack);
 
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
+    LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
+
+
+    while (LWAPP->update()) {
+        LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
     }
 
-    glfwTerminate();
-
-    std::cout<<"Hello World!"<<std::endl;
+    LWAPP->destroy();
     return 0;
 }

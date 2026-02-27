@@ -13,16 +13,18 @@
 void checkError() {
     std::string errorMsg = "";
     GLenum errorNo = glGetError();
-    switch (errorNo) {
-        case GL_INVALID_ENUM:
-            errorMsg = "GL_INVALID_ENUM";
-        break;
-        case GL_INVALID_OPERATION:
-            errorMsg = "GL_INVALID_OPERATION";
-        case GL_OUT_OF_MEMORY:
-            errorMsg = "GL_OUT_OF_MEMORY";
-        default:
-            errorMsg = "Unknown error";
+    if (errorNo != GL_NO_ERROR) {
+        switch (errorNo) {
+            case GL_INVALID_ENUM:
+                errorMsg = "GL_INVALID_ENUM";
+            break;
+            case GL_INVALID_OPERATION:
+                errorMsg = "GL_INVALID_OPERATION";
+            case GL_OUT_OF_MEMORY:
+                errorMsg = "GL_OUT_OF_MEMORY";
+            default:
+                errorMsg = "Unknown error";
+        }
+        std::cout << errorMsg << std::endl;
     }
-    std::cout << errorMsg << std::endl;
 }
