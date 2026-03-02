@@ -1,6 +1,7 @@
 #include<iostream>
-#include<glad/glad.h>
-#include<GLFW/glfw3.h>
+#include <shader.h>
+
+#include "core.h"
 
 #include "checkerror.h"
 #include "application.h"
@@ -8,7 +9,7 @@
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
-    glViewport(0, 0, width/2, height);
+    glViewport(0, 0, width, height);
 }
 
 void keyCallBack(int key, int scancode, int action, int mods) {
@@ -17,32 +18,8 @@ void keyCallBack(int key, int scancode, int action, int mods) {
 
 GLuint vao;
 GLuint program;
+Shader *shader = nullptr;
 void prepareVAO() {
-
-   //  float vertices[] = {
-   //      0.0f,  0.5f, 0.0f,   // 顶点1（上）
-   //     -0.5f, -0.5f, 0.0f,   // 顶点2（左下）
-   //      0.5f, -0.5f, 0.0f    // 顶点3（右下）
-   // };
-   //
-   //  float colors[] = {
-   //      1.0f, 0.0f, 0.0f,   // 顶点1 - 红色
-   //      0.0f, 1.0f, 0.0f,   // 顶点2 - 绿色
-   //      0.0f, 0.0f, 1.0f    // 顶点3 - 蓝色
-   //  };
-   //
-   //  GLuint vVBO;
-   //  glGenBuffers(1, &vVBO);
-   //  glBindBuffer(GL_ARRAY_BUFFER, vVBO);
-   //  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-   //  glDeleteBuffers(1, &vVBO);
-   //
-   //  GLuint cVBO;
-   //  glGenBuffers(1, &cVBO);
-   //  glBindBuffer(GL_ARRAY_BUFFER, cVBO);
-   //  glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_DYNAMIC_DRAW);
-   //  glDeleteBuffers(1, &cVBO);
-
 
 
     float data[] = {
@@ -119,6 +96,9 @@ void prepareShader() {
 
 }
 
+void prepareShaderClass() {
+    shader = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
+}
 
 
 
@@ -131,13 +111,13 @@ int main() {
 
     LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
     prepareVAO();
-    prepareShader();
-
+    prepareShaderClass();
     while (LWAPP->update()) {
         LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
-        LWGLCALL(glUseProgram(program));
+        shader->useProgram();
         LWGLCALL(glBindVertexArray(vao));
         LWGLCALL(glDrawArrays(GL_TRIANGLES, 0, 3));
+        shader->unuseProgram();
     }
 
     LWAPP->destroy();

@@ -7,13 +7,11 @@ find_package(glfw3 3.3 REQUIRED)
 add_subdirectory(thirdparty/glad)
 add_subdirectory(wrapper)
 add_subdirectory(application)
+add_subdirectory(glframework)
 
-add_executable(LearnOpenGL2026Bilibili main.cpp
-        wrapper/checkerror.cpp
-        wrapper/include/checkerror.h
-        application/application.cpp
-        application/include/application.h)
+add_executable(LearnOpenGL2026Bilibili main.cpp)
 
 
-target_link_libraries(LearnOpenGL2026Bilibili glfw glad wrapper lwapp)
+target_link_libraries(LearnOpenGL2026Bilibili glfw glad wrapper lwapp glframework)
 target_compile_definitions(wrapper PUBLIC DEBUG)
+file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
