@@ -10,6 +10,9 @@
 #include <string>
 #include <stdexcept>
 
+bool Shader::setUniformInt(const std::string &name, int value) {
+}
+
 void Shader::useProgram() {
     glUseProgram(mProgram);
 }
