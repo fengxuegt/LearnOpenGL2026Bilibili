@@ -34,6 +34,12 @@ void prepareVAO() {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
+
+    // GLuint aPosLocation =  glGetAttribLocation(program, "aPos");
+    // GLuint aColorLocation =  glGetAttribLocation(program, "aColor");
+    // 这两个参数可以用于下面的两个API，放到index这个参数的位置；
+
+
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -115,6 +121,7 @@ int main() {
     while (LWAPP->update()) {
         LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
         shader->useProgram();
+        shader->setUniformFloat("time",sin(glfwGetTime()));
         LWGLCALL(glBindVertexArray(vao));
         LWGLCALL(glDrawArrays(GL_TRIANGLES, 0, 3));
         shader->unuseProgram();

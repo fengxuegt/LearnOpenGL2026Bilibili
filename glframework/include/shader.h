@@ -12,6 +12,8 @@
 class Shader {
 public:
     bool setUniformInt(const std::string& name, int value);
+    bool setUniformFloat(const std::string& name, float value);
+    bool setUniformVec3Int(const std::string name, float v0, float v1, float v2);
 public:
     void useProgram();
     void unuseProgram();

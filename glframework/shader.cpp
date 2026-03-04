@@ -11,6 +11,21 @@
 #include <stdexcept>
 
 bool Shader::setUniformInt(const std::string &name, int value) {
+    GLuint location = glGetUniformLocation(mProgram, name.c_str());
+    glUniform1i(location, value);
+    return true;
+}
+
+bool Shader::setUniformFloat(const std::string &name, float value) {
+    GLuint location = glGetUniformLocation(mProgram, name.c_str());
+    glUniform1f(location, value);
+    return true;
+}
+
+bool Shader::setUniformVec3Int(const std::string name, float v0, float v1, float v2) {
+    GLuint location = glGetUniformLocation(mProgram, name.c_str());
+    glUniform3i(location, v0, v1, v2);
+    return true;
 }
 
 void Shader::useProgram() {
