@@ -2,7 +2,7 @@
 // Created by fengxuegt on 2026/2/27.
 //
 
-#include "./include/application.h"
+#include "application.h"
 
 #include <iostream>
 #include <glad/glad.h>
