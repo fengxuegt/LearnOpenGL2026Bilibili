@@ -7,6 +7,7 @@
 #include "application.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "texture.h"
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -20,9 +21,8 @@ void keyCallBack(int key, int scancode, int action, int mods) {
 GLuint vao;
 GLuint program;
 Shader *shader = nullptr;
+Texture *texture = nullptr;
 void prepareVAO() {
-
-
    //  float data[] = {
    //      // 位置              // 颜色
    //      0.0f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f, 0.5f, 1.0f, // 红
@@ -119,23 +119,8 @@ void prepareShader() {
     glDeleteShader(fragmentShader);
 
 }
-GLuint textureID;
 void prepareTexture() {
-    int width, height;
-    int channels;
-    stbi_set_flip_vertically_on_load(true);
-    auto image_data = stbi_load("assets/textures/asuna.png", &width, &height, &channels, STBI_rgb_alpha); // unsigned char * data
-    // auto image_data = stbi_load("assets/textures/box.png", &width, &height, &channels, STBI_rgb_alpha); // unsigned char * data
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // 设置过滤形式
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // 设置过滤形式
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    stbi_image_free(image_data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    texture = new Texture("assets/textures/asuna.png", 0);
 }
 
 void prepareShaderClass() {
@@ -159,8 +144,9 @@ int main() {
         LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
         shader->useProgram();
         shader->setUniformFloat("time",sin(glfwGetTime()));
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
+        // glActiveTexture(GL_TEXTURE0);
+        // glBindTexture(GL_TEXTURE_2D, textureID);
+        texture->Bind();
         shader->setUniformInt("samplerAsuna", 0);
         LWGLCALL(glBindVertexArray(vao));
         // LWGLCALL(glDrawArrays(GL_TRIANGLES, 0, 3));
