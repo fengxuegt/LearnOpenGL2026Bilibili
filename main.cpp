@@ -23,6 +23,7 @@ GLuint program;
 Shader *shader = nullptr;
 Texture *texture = nullptr;
 glm::mat4 transMat(1.0f);
+glm::mat4 viewMat(1.0f);
 void prepareVAO() {
    //  float data[] = {
    //      // 位置              // 颜色
@@ -131,10 +132,13 @@ void prepareShaderClass() {
 
 
 void doTransform() {
-    transMat = glm::translate(transMat, glm::vec3(0.3, 0.3, 0.0));
-    transMat = glm::rotate(transMat, glm::radians(45.0f), glm::vec3(0, 0, 1));
+    // transMat = glm::translate(transMat, glm::vec3(0.3, 0.3, 0.0));
+    // transMat = glm::rotate(transMat, glm::radians(45.0f), glm::vec3(0, 0, 1));
     transMat = glm::scale(transMat, glm::vec3(0.5, 0.5, 0.5));
 
+}
+void prepareCamera() {
+    viewMat = glm::lookAt(glm::vec3(0.5f, 0, 0.5f), glm::vec3(0.5f, 0, 0), glm::vec3(0, 1, 0));
 }
 
 int main() {
@@ -149,6 +153,7 @@ int main() {
     prepareShaderClass();
     prepareTexture();
     doTransform();
+    prepareCamera();
     while (LWAPP->update()) {
         LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
         shader->useProgram();
@@ -156,6 +161,7 @@ int main() {
         texture->Bind();
         shader->setUniformInt("samplerAsuna", 0);
         shader->setUniformMat4("transMat", transMat);
+        shader->setUniformMat4("viewMat", viewMat);
         LWGLCALL(glBindVertexArray(vao));
         LWGLCALL(glDrawElements(GL_TRIANGLES,  6, GL_UNSIGNED_INT, NULL));
         shader->unuseProgram();
