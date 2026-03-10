@@ -28,6 +28,11 @@ bool Shader::setUniformVec3Int(const std::string name, float v0, float v1, float
     return true;
 }
 
+bool Shader::setUniformMat4(const std::string &name, const glm::mat4 &matrix) {
+    GLuint location = glGetUniformLocation(mProgram, name.c_str());
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
+}
+
 void Shader::useProgram() {
     glUseProgram(mProgram);
 }

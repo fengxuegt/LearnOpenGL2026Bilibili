@@ -22,6 +22,7 @@ GLuint vao;
 GLuint program;
 Shader *shader = nullptr;
 Texture *texture = nullptr;
+glm::mat4 transMat(1.0f);
 void prepareVAO() {
    //  float data[] = {
    //      // 位置              // 颜色
@@ -129,6 +130,13 @@ void prepareShaderClass() {
 
 
 
+void doTransform() {
+    transMat = glm::translate(transMat, glm::vec3(0.3, 0.3, 0.0));
+    transMat = glm::rotate(transMat, glm::radians(45.0f), glm::vec3(0, 0, 1));
+    transMat = glm::scale(transMat, glm::vec3(0.5, 0.5, 0.5));
+
+}
+
 int main() {
     if (!LWAPP->init("OpenGL basic", 800, 600)) {
         return -1;
@@ -140,16 +148,15 @@ int main() {
     prepareVAO();
     prepareShaderClass();
     prepareTexture();
+    doTransform();
     while (LWAPP->update()) {
         LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
         shader->useProgram();
         shader->setUniformFloat("time",sin(glfwGetTime()));
-        // glActiveTexture(GL_TEXTURE0);
-        // glBindTexture(GL_TEXTURE_2D, textureID);
         texture->Bind();
         shader->setUniformInt("samplerAsuna", 0);
+        shader->setUniformMat4("transMat", transMat);
         LWGLCALL(glBindVertexArray(vao));
-        // LWGLCALL(glDrawArrays(GL_TRIANGLES, 0, 3));
         LWGLCALL(glDrawElements(GL_TRIANGLES,  6, GL_UNSIGNED_INT, NULL));
         shader->unuseProgram();
     }
