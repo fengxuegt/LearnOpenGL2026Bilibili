@@ -16,3 +16,10 @@ glm::mat4 Camera::getViewMatrix() {
     glm::vec3 center = mPosition + fornt;
     return glm::lookAt(mPosition, center, mUp);
 }
+
+glm::mat4 Camera::getProjectionMatrix() {
+    return glm::mat4(1.0f);
+}
+
+void Camera::scale(float scale) {
+}

@@ -21,5 +21,9 @@ OrthographicCamera::~OrthographicCamera() {
 }
 
 glm::mat4 OrthographicCamera::getProjectionMatrix() {
-    return Camera::getProjectionMatrix();
+    return glm::ortho(mLeft, mRight, mBottom, mTop, mNear, mFar);
+}
+
+void OrthographicCamera::scale(float scale) {
+    Camera::scale(scale);
 }

@@ -8,6 +8,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+void Application::getCurrentXYPosition(double *x, double *y) {
+    glfwGetCursorPos(mWindow, x, y);
+}
+
 bool Application::init(const char* title, int width, int height) {
     mWidth = width;
     mHeight = height;
@@ -23,6 +27,9 @@ bool Application::init(const char* title, int width, int height) {
     glfwMakeContextCurrent(mWindow);
     glfwSetFramebufferSizeCallback(mWindow, frameSizeCallback);
     glfwSetKeyCallback(mWindow, keyCallBack);
+    glfwSetMouseButtonCallback(mWindow, mouseButtonCallBack);
+    glfwSetCursorPosCallback(mWindow, cursorPositionCallBack);
+    glfwSetScrollCallback(mWindow, scrollCallBack);
     glfwSetWindowUserPointer(mWindow, this);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -45,6 +52,14 @@ bool Application::update() {
 bool Application::destroy() {
     glfwTerminate();
     return true;
+}
+
+int Application::getWidth() {
+    return mWidth;
+}
+
+int Application::getHeight() {
+    return mHeight;
 }
 
 Application::~Application() {
@@ -81,3 +96,25 @@ void Application::keyCallBack(GLFWwindow *window, int key, int scancode, int act
         self->mKeyCallBack(key, scancode, action, mods);
     }
 }
+
+void Application::mouseButtonCallBack(GLFWwindow *window, int button, int action, int mods) {
+    Application * self = (Application*)glfwGetWindowUserPointer(window);
+    if (self->mMouseButtonCallBack != nullptr) {
+        self->mMouseButtonCallBack(button, action, mods);
+    }
+}
+
+void Application::cursorPositionCallBack(GLFWwindow *window, double xpos, double ypos) {
+    Application * self = (Application*)glfwGetWindowUserPointer(window);
+    if (self->mCursorPositionCallBack != nullptr) {
+        self->mCursorPositionCallBack(xpos, ypos);
+    }
+}
+
+void Application::scrollCallBack(GLFWwindow *window, double xoffset, double yoffset) {
+    Application * self = (Application*)glfwGetWindowUserPointer(window);
+    if (self->mScrollCallBack != nullptr) {
+        self->mScrollCallBack(xoffset, yoffset);
+    }
+}
+

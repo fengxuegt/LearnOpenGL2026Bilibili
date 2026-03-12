@@ -20,3 +20,8 @@ PerspectiveCamera::~PerspectiveCamera() {
 glm::mat4 PerspectiveCamera::getProjectionMatrix() {
     return glm::perspective(glm::radians(mFov), mAspect, mNear, mFar);
 }
+
+void PerspectiveCamera::scale(float scale) {
+    auto front = glm::cross(mUp, mRight);
+    mPosition += front * scale;
+}

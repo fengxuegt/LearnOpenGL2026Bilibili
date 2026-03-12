@@ -14,6 +14,7 @@ public:
     ~OrthographicCamera();
 
     glm::mat4 getProjectionMatrix() override;
+    void scale(float scale) override;
 
 public:
     float mLeft{0.0f};

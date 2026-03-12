@@ -6,8 +6,17 @@
 #include "checkerror.h"
 #include "application.h"
 #define STB_IMAGE_IMPLEMENTATION
+#include <camera.h>
+
+#include "cameracontrol.h"
+#include "perspectivecamera.h"
 #include "stb_image.h"
 #include "texture.h"
+#include "trackballcameracontrol.h"
+
+Camera *camera = nullptr;
+CameraControl *cameraControl = nullptr;
+glm::mat4 transMat(1.0f);
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -16,14 +25,28 @@ void frameSizeCallback(int width, int height) {
 
 void keyCallBack(int key, int scancode, int action, int mods) {
     std::cout << key << " " << scancode << " " << action << " " << mods << std::endl;
+    cameraControl->onKey(key, action, mods);
+}
+
+void mouseButtonCallBack(int button, int action, int mods) {
+    double x, y;
+    LWAPP->getCurrentXYPosition(&x, &y);
+    cameraControl->onMouse(button, action, x, y);
+}
+
+void cursorPositionCallBack(double xpos, double ypos) {
+    cameraControl->onCursor(xpos, ypos);
+}
+
+void scrollCallback(double xoffset, double yoffset) {
+    cameraControl->onScroll(yoffset);
 }
 
 GLuint vao;
 GLuint program;
 Shader *shader = nullptr;
 Texture *texture = nullptr;
-glm::mat4 transMat(1.0f);
-glm::mat4 viewMat(1.0f);
+
 void prepareVAO() {
    //  float data[] = {
    //      // 位置              // 颜色
@@ -124,21 +147,14 @@ void prepareShader() {
 void prepareTexture() {
     texture = new Texture("assets/textures/asuna.png", 0);
 }
-
 void prepareShaderClass() {
     shader = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 }
 
-
-
-void doTransform() {
-    // transMat = glm::translate(transMat, glm::vec3(0.3, 0.3, 0.0));
-    // transMat = glm::rotate(transMat, glm::radians(45.0f), glm::vec3(0, 0, 1));
-    transMat = glm::scale(transMat, glm::vec3(0.5, 0.5, 0.5));
-
-}
 void prepareCamera() {
-    viewMat = glm::lookAt(glm::vec3(0.5f, 0, 0.5f), glm::vec3(0.5f, 0, 0), glm::vec3(0, 1, 0));
+    camera = new PerspectiveCamera(60.0f, (float)LWAPP->getWidth()/ (float)LWAPP->getHeight(), 0.1f, 1000.0f);
+    cameraControl = new TrackBallCameraControl();
+    cameraControl->setCamera(camera);
 }
 
 int main() {
@@ -147,21 +163,25 @@ int main() {
     }
     LWAPP->setFrameBufferSizeCallback(frameSizeCallback);
     LWAPP->setKeyCallBack(keyCallBack);
+    LWAPP->setMouseButtonCallBack(mouseButtonCallBack);
+    LWAPP->setCursorPositionCallBack(cursorPositionCallBack);
+    LWAPP->setScrollCallBack(scrollCallback);
 
     LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
     prepareVAO();
     prepareShaderClass();
     prepareTexture();
-    doTransform();
     prepareCamera();
     while (LWAPP->update()) {
+        cameraControl->update();
         LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
         shader->useProgram();
         shader->setUniformFloat("time",sin(glfwGetTime()));
         texture->Bind();
         shader->setUniformInt("samplerAsuna", 0);
         shader->setUniformMat4("transMat", transMat);
-        shader->setUniformMat4("viewMat", viewMat);
+        shader->setUniformMat4("viewMat", camera->getViewMatrix());
+        shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
         LWGLCALL(glBindVertexArray(vao));
         LWGLCALL(glDrawElements(GL_TRIANGLES,  6, GL_UNSIGNED_INT, NULL));
         shader->unuseProgram();

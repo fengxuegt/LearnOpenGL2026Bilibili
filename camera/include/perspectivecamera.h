@@ -14,6 +14,7 @@ public:
     ~PerspectiveCamera();
 
     glm::mat4 getProjectionMatrix() override;
+    void scale(float scale) override;
 
 public:
     float mFov{0.0f};

@@ -7,8 +7,9 @@ out vec2 fUV;
 
 uniform mat4 transMat;
 uniform mat4 viewMat;
+uniform mat4 projectionMat;
 void main() {
-    gl_Position = viewMat * transMat * vec4(aPos, 1.0f);
+    gl_Position = projectionMat * viewMat * transMat * vec4(aPos, 1.0f);
     vColor = aColor;
     fUV = aUV;
 }
