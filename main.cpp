@@ -9,6 +9,7 @@
 #include <camera.h>
 
 #include "cameracontrol.h"
+#include "geometry.h"
 #include "perspectivecamera.h"
 #include "stb_image.h"
 #include "texture.h"
@@ -17,6 +18,8 @@
 Camera *camera = nullptr;
 CameraControl *cameraControl = nullptr;
 glm::mat4 transMat(1.0f);
+glm::mat4 transMatBox(1.0f);
+Geometry *plane = nullptr;
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -42,10 +45,11 @@ void scrollCallback(double xoffset, double yoffset) {
     cameraControl->onScroll(yoffset);
 }
 
-GLuint vao;
+GLuint asunavao, boxvao;
 GLuint program;
 Shader *shader = nullptr;
 Texture *texture = nullptr;
+Texture *boxTexture = nullptr;
 
 void prepareVAO() {
    //  float data[] = {
@@ -66,8 +70,8 @@ void prepareVAO() {
         1, 3, 2,
     };
     GLuint vbo;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
+    glGenVertexArrays(1, &asunavao);
+    glBindVertexArray(asunavao);
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
@@ -89,7 +93,6 @@ void prepareVAO() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
     glBindVertexArray(0);
 }
-
 void prepareShader() {
     const char* vertexShaderSource =
         "#version 330 core\n"
@@ -146,15 +149,23 @@ void prepareShader() {
 }
 void prepareTexture() {
     texture = new Texture("assets/textures/asuna.png", 0);
+    boxTexture = new Texture("assets/textures/box.png", 0);
 }
 void prepareShaderClass() {
     shader = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 }
-
 void prepareCamera() {
     camera = new PerspectiveCamera(60.0f, (float)LWAPP->getWidth()/ (float)LWAPP->getHeight(), 0.1f, 1000.0f);
     cameraControl = new TrackBallCameraControl();
     cameraControl->setCamera(camera);
+}
+void prepareState (){
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
+    glClearDepth(0.0f);
+}
+void prepareMesh() {
+    plane = Geometry::createPlane(3, 3);
 }
 
 int main() {
@@ -168,22 +179,33 @@ int main() {
     LWAPP->setScrollCallBack(scrollCallback);
 
     LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
-    prepareVAO();
+    prepareState();
+    // prepareVAO();
+    prepareMesh();
     prepareShaderClass();
     prepareTexture();
     prepareCamera();
     while (LWAPP->update()) {
         cameraControl->update();
-        LWGLCALL(glClear(GL_COLOR_BUFFER_BIT));
+        LWGLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         shader->useProgram();
-        shader->setUniformFloat("time",sin(glfwGetTime()));
-        texture->Bind();
         shader->setUniformInt("samplerAsuna", 0);
-        shader->setUniformMat4("transMat", transMat);
+        shader->setUniformFloat("time",sin(glfwGetTime()));
         shader->setUniformMat4("viewMat", camera->getViewMatrix());
         shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
-        LWGLCALL(glBindVertexArray(vao));
-        LWGLCALL(glDrawElements(GL_TRIANGLES,  6, GL_UNSIGNED_INT, NULL));
+        boxTexture->Bind();
+        transMatBox = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 1.0f));
+        shader->setUniformMat4("transMat", transMatBox);
+        LWGLCALL(glBindVertexArray(plane->getVao()));
+        LWGLCALL(glDrawElements(GL_TRIANGLES,  plane->getIndicesCount(), GL_UNSIGNED_INT, NULL));
+
+        texture->Bind();
+        shader->setUniformMat4("transMat", transMat);
+        LWGLCALL(glBindVertexArray(plane->getVao()));
+        LWGLCALL(glDrawElements(GL_TRIANGLES,  plane->getIndicesCount(), GL_UNSIGNED_INT, NULL));
+
+
+
         shader->unuseProgram();
     }
 
