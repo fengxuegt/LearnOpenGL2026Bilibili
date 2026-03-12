@@ -20,6 +20,8 @@ CameraControl *cameraControl = nullptr;
 glm::mat4 transMat(1.0f);
 glm::mat4 transMatBox(1.0f);
 Geometry *plane = nullptr;
+Geometry *box = nullptr;
+Geometry *sphere = nullptr;
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -161,11 +163,11 @@ void prepareCamera() {
 }
 void prepareState (){
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_ALWAYS);
-    glClearDepth(0.0f);
 }
 void prepareMesh() {
     plane = Geometry::createPlane(3, 3);
+    box = Geometry::createBox(3);
+    sphere = Geometry::createSphere(1);
 }
 
 int main() {
@@ -180,7 +182,6 @@ int main() {
 
     LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
     prepareState();
-    // prepareVAO();
     prepareMesh();
     prepareShaderClass();
     prepareTexture();
@@ -193,17 +194,16 @@ int main() {
         shader->setUniformFloat("time",sin(glfwGetTime()));
         shader->setUniformMat4("viewMat", camera->getViewMatrix());
         shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
-        boxTexture->Bind();
-        transMatBox = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 1.0f));
+        texture->Bind();
+        transMatBox = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.5f, 1.0f));
         shader->setUniformMat4("transMat", transMatBox);
-        LWGLCALL(glBindVertexArray(plane->getVao()));
-        LWGLCALL(glDrawElements(GL_TRIANGLES,  plane->getIndicesCount(), GL_UNSIGNED_INT, NULL));
+        LWGLCALL(glBindVertexArray(sphere->getVao()));
+        LWGLCALL(glDrawElements(GL_TRIANGLES,  sphere->getIndicesCount(), GL_UNSIGNED_INT, NULL));
 
         texture->Bind();
         shader->setUniformMat4("transMat", transMat);
-        LWGLCALL(glBindVertexArray(plane->getVao()));
-        LWGLCALL(glDrawElements(GL_TRIANGLES,  plane->getIndicesCount(), GL_UNSIGNED_INT, NULL));
-
+        LWGLCALL(glBindVertexArray(box->getVao()));
+        LWGLCALL(glDrawElements(GL_TRIANGLES,  box->getIndicesCount(), GL_UNSIGNED_INT, NULL));
 
 
         shader->unuseProgram();
