@@ -22,6 +22,8 @@ glm::mat4 transMatBox(1.0f);
 Geometry *plane = nullptr;
 Geometry *box = nullptr;
 Geometry *sphere = nullptr;
+glm::vec3 lightDirection = glm::vec3(-1.0f, -1.0f, -1.0f); // 光的方向
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 光的颜色
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -53,102 +55,6 @@ Shader *shader = nullptr;
 Texture *texture = nullptr;
 Texture *boxTexture = nullptr;
 
-void prepareVAO() {
-   //  float data[] = {
-   //      // 位置              // 颜色
-   //      0.0f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f, 0.5f, 1.0f, // 红
-   //     -0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,  0.0f, 0.0f,// 绿
-   //      0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f, 0.0f   // 蓝
-   //
-   // };
-    float data [] = {
-         -1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // 左上
-        1.0f, 1.0f, 0.0f,   0.0f, 1.0f, 0.0f,  1.0f, 1.0f,// 右上
-         -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f, 0.0f, 0.0f , // 左下
-        1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f, 0.0f   // 右下
-         };
-    unsigned int ebos[] = {
-        0, 1, 2,
-        1, 3, 2,
-    };
-    GLuint vbo;
-    glGenVertexArrays(1, &asunavao);
-    glBindVertexArray(asunavao);
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(data), data, GL_STATIC_DRAW);
-
-    // GLuint aPosLocation =  glGetAttribLocation(program, "aPos");
-    // GLuint aColorLocation =  glGetAttribLocation(program, "aColor");
-    // 这两个参数可以用于下面的两个API，放到index这个参数的位置；
-
-    GLuint ebo;
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ebos), ebos, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 3));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
-    glBindVertexArray(0);
-}
-void prepareShader() {
-    const char* vertexShaderSource =
-        "#version 330 core\n"
-        "layout(location = 0) in vec3 aPos;\n"
-        "layout(location = 1) in vec3 vColor;\n"
-        "out vec3 fColor;\n"
-        "void main() {\n"
-        "   gl_Position = vec4(aPos, 1.0);\n"
-        "   fColor = vColor;\n"
-        "}\n";
-
-    const char* fragmentShaderSource =
-        "#version 330 core\n"
-        "in vec3 fColor;\n"
-        "out vec4 fragColor;\n"
-        "void main() {\n"
-        "   fragColor = vec4(fColor, 1.0f);\n"
-        "}\n";
-
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    GLint success;
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-
-    program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        std::cout << infoLog << std::endl;
-    }
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-}
 void prepareTexture() {
     texture = new Texture("assets/textures/asuna.png", 0);
     boxTexture = new Texture("assets/textures/box.png", 0);
@@ -162,12 +68,36 @@ void prepareCamera() {
     cameraControl->setCamera(camera);
 }
 void prepareState (){
+    LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
     glEnable(GL_DEPTH_TEST);
 }
 void prepareMesh() {
     plane = Geometry::createPlane(3, 3);
     box = Geometry::createBox(3);
     sphere = Geometry::createSphere(1);
+}
+void render() {
+    LWGLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    shader->useProgram();
+    shader->setUniformInt("samplerAsuna", 0);
+    shader->setUniformMat4("viewMat", camera->getViewMatrix());
+    shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+
+    shader->setUniformVec3Float("lightDirection", lightDirection);
+    shader->setUniformVec3Float("lightColor", lightColor);
+    shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+    texture->Bind();
+    transMatBox = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.5f, 1.0f));
+    shader->setUniformMat4("transMat", transMatBox);
+    LWGLCALL(glBindVertexArray(sphere->getVao()));
+    LWGLCALL(glDrawElements(GL_TRIANGLES,  sphere->getIndicesCount(), GL_UNSIGNED_INT, NULL));
+
+    texture->Bind();
+    shader->setUniformMat4("transMat", transMat);
+    LWGLCALL(glBindVertexArray(box->getVao()));
+    LWGLCALL(glDrawElements(GL_TRIANGLES,  box->getIndicesCount(), GL_UNSIGNED_INT, NULL));
+
+    shader->unuseProgram();
 }
 
 int main() {
@@ -180,33 +110,15 @@ int main() {
     LWAPP->setCursorPositionCallBack(cursorPositionCallBack);
     LWAPP->setScrollCallBack(scrollCallback);
 
-    LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
     prepareState();
     prepareMesh();
     prepareShaderClass();
     prepareTexture();
     prepareCamera();
+
     while (LWAPP->update()) {
         cameraControl->update();
-        LWGLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-        shader->useProgram();
-        shader->setUniformInt("samplerAsuna", 0);
-        shader->setUniformFloat("time",sin(glfwGetTime()));
-        shader->setUniformMat4("viewMat", camera->getViewMatrix());
-        shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
-        texture->Bind();
-        transMatBox = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.5f, 1.0f));
-        shader->setUniformMat4("transMat", transMatBox);
-        LWGLCALL(glBindVertexArray(sphere->getVao()));
-        LWGLCALL(glDrawElements(GL_TRIANGLES,  sphere->getIndicesCount(), GL_UNSIGNED_INT, NULL));
-
-        texture->Bind();
-        shader->setUniformMat4("transMat", transMat);
-        LWGLCALL(glBindVertexArray(box->getVao()));
-        LWGLCALL(glDrawElements(GL_TRIANGLES,  box->getIndicesCount(), GL_UNSIGNED_INT, NULL));
-
-
-        shader->unuseProgram();
+        render();
     }
 
     LWAPP->destroy();

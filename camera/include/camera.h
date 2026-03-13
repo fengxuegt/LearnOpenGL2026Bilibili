@@ -19,7 +19,7 @@ public:
     virtual void scale(float scale);
 
 public:
-    glm::vec3 mPosition{0.0f, 0.0f, 5.0f}; // 摄像机的位置
+    glm::vec3 mPosition{0.0f, 0.0f, 8.0f}; // 摄像机的位置
     glm::vec3 mUp{0.0f, 1.0f, 0.0f}; // 穹顶向量
     glm::vec3 mRight{1.0f, 0.0f, 0.0f};
 

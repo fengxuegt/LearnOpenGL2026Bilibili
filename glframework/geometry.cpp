@@ -33,7 +33,7 @@ GLuint Geometry::getIndicesCount() {
 }
 
 Geometry * Geometry::createBox(float size) {
-    Geometry* geometry = new Geometry();
+	Geometry* geometry = new Geometry();
 	geometry->mIndicesCount = 36;
 
 	float halfSize = size / 2.0f;
@@ -62,17 +62,54 @@ Geometry * Geometry::createBox(float size) {
 		0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0,
 	};
 
+	float normals[] = {
+		//前面
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 1.0f,
+		//后面
+		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+		0.0f, 0.0f, -1.0f,
+
+		//上面
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+
+		//下面
+		0.0f, -1.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+		0.0f, -1.0f, 0.0f,
+
+		//右面
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+
+		//左面
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+		-1.0f, 0.0f, 0.0f,
+	};
+
 	unsigned int indices[] = {
 		0, 1, 2, 2, 3, 0,   // Front face
 		4, 5, 6, 6, 7, 4,   // Back face
 		8, 9, 10, 10, 11, 8,  // Top face
 		12, 13, 14, 14, 15, 12, // Bottom face
-		16, 17, 18, 18, 19, 16, // Right face
+		16, 17, 18, 18, 19,  16, // Right face
 		20, 21, 22, 22, 23, 20  // Left face
 	};
 
-	//2 VBO����
-	GLuint& posVbo = geometry->mPosVbo, uvVbo = geometry->mUvVbo;
+	//2 VBO创建
+	GLuint& posVbo = geometry->mPosVbo, uvVbo = geometry->mUvVbo, normalVbo = geometry->mNormalVbo ;
 	glGenBuffers(1, &posVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, posVbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
@@ -81,12 +118,16 @@ Geometry * Geometry::createBox(float size) {
 	glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_STATIC_DRAW);
 
-	//3 EBO����
+	glGenBuffers(1, &normalVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, normalVbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+
+	//3 EBO创建
 	glGenBuffers(1, &geometry->mEbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->mEbo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-
+	//4 VAO创建
 	glGenVertexArrays(1, &geometry->mVao);
 	glBindVertexArray(geometry->mVao);
 
@@ -98,7 +139,11 @@ Geometry * Geometry::createBox(float size) {
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
 
-	//5.4 ����ebo����ǰ��vao
+	glBindBuffer(GL_ARRAY_BUFFER, normalVbo);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
+
+	//5.4 加入ebo到当前的vao
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->mEbo);
 
 	glBindVertexArray(0);
@@ -136,9 +181,9 @@ Geometry *Geometry::createPlane(float width, float height) {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 6));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(sizeof(float) * 3));
     glBindVertexArray(0);
     return geometry;
 }
@@ -147,17 +192,18 @@ Geometry *Geometry::createPlane(float width, float height) {
 Geometry * Geometry::createSphere(float radius) {
 	Geometry* geometry = new Geometry();
 
-	//Ŀ�꣺1 λ�� 2 uv 3 ����
-	//1 ��Ҫ��������
+	//目标：1 位置 2 uv 3 索引
+	//1 主要变量声明
 	std::vector<GLfloat> positions{};
 	std::vector<GLfloat> uvs{};
+	std::vector<GLfloat> normals{};
 	std::vector<GLuint> indices{};
 
-	//����γ���뾭�ߵ�����
-	int numLatLines = 60;//γ��
-	int numLongLines = 60;//����
+	//声明纬线与经线的数量
+	int numLatLines = 60;//纬线
+	int numLongLines = 60;//经线
 
-	//2 ͨ������ѭ����γ�����⣬�������ڣ�->λ�á�uv
+	//2 通过两层循环（纬线在外，经线在内）->位置、uv、法线
 	for (int i = 0; i <= numLatLines; i++) {
 		for (int j = 0; j <= numLongLines; j++) {
 			float phi = i * glm::pi<float>() / numLatLines;
@@ -176,11 +222,16 @@ Geometry * Geometry::createSphere(float radius) {
 
 			uvs.push_back(u);
 			uvs.push_back(v);
+
+			//注意：法线方向没有问题，法线的长度不为1
+			normals.push_back(x);
+			normals.push_back(y);
+			normals.push_back(z);
 		}
 	}
 
 
-	//3 ͨ������ѭ��������û��=�ţ�->��������
+	//3 通过两层循环（这里没有=号）->顶点索引
 	for (int i = 0; i < numLatLines; i++) {
 		for (int j = 0; j < numLongLines; j++) {
 			int p1 = i * (numLongLines + 1) + j;
@@ -199,8 +250,8 @@ Geometry * Geometry::createSphere(float radius) {
 	}
 
 
-	//4 ����vbo��vao
-	GLuint& posVbo = geometry->mPosVbo, uvVbo = geometry->mUvVbo;
+	//4 生成vbo与vao
+	GLuint& posVbo = geometry->mPosVbo, uvVbo = geometry->mUvVbo, normalVbo = geometry->mNormalVbo;
 	glGenBuffers(1, &posVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, posVbo);
 	glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(float), positions.data(), GL_STATIC_DRAW);
@@ -208,6 +259,10 @@ Geometry * Geometry::createSphere(float radius) {
 	glGenBuffers(1, &uvVbo);
 	glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
 	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
+
+	glGenBuffers(1, &normalVbo);
+	glBindBuffer(GL_ARRAY_BUFFER, normalVbo);
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), normals.data(), GL_STATIC_DRAW);
 
 	glGenBuffers(1, &geometry->mEbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->mEbo);
@@ -223,6 +278,10 @@ Geometry * Geometry::createSphere(float radius) {
 	glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, (void*)0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalVbo);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->mEbo);
 
