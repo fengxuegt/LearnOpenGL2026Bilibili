@@ -87,12 +87,15 @@ void render() {
     shader->setUniformVec3Float("lightColor", lightColor);
     shader->setUniformVec3Float("cameraPosition", camera->mPosition);
     texture->Bind();
-    transMatBox = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 0.5f, 1.0f));
+    transMatBox = glm::mat4(1.0f);
+    transMatBox = glm::translate(transMatBox, glm::vec3(3.0f, 0.5f, 1.0f));
+    transMatBox = glm::rotate(transMatBox, glm::radians((float)glfwGetTime() * 100), glm::vec3(0.0f, 1.0f, 0.0f));
     shader->setUniformMat4("transMat", transMatBox);
     LWGLCALL(glBindVertexArray(sphere->getVao()));
     LWGLCALL(glDrawElements(GL_TRIANGLES,  sphere->getIndicesCount(), GL_UNSIGNED_INT, NULL));
 
     texture->Bind();
+    transMat = glm::rotate(glm::mat4(1.0f), glm::radians((float)glfwGetTime() * 100), glm::vec3(0.0f, 1.0f, 0.0f));
     shader->setUniformMat4("transMat", transMat);
     LWGLCALL(glBindVertexArray(box->getVao()));
     LWGLCALL(glDrawElements(GL_TRIANGLES,  box->getIndicesCount(), GL_UNSIGNED_INT, NULL));

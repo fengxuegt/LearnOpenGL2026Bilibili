@@ -10,9 +10,16 @@ uniform vec3 cameraPosition;
 void main() {
     vec3 objectColor = texture(samplerAsuna, fUV).xyz;
     vec3 diffuse = lightColor * objectColor * clamp(dot(normalize(fNormal), -normalize(lightDirection)), 0, 1);
+    vec3 lightDirectionN = normalize(lightDirection);
+    vec3 normalN = normalize(fNormal);
+    float flag = step(0.0f, dot(-lightDirectionN, normalN));
 
-    vec3 viewDirection = worldPos - cameraPosition;
-    vec3 specular = lightColor * objectColor * clamp(dot(normalize(reflect(lightDirection, fNormal)), -normalize(viewDirection)), 0, 1);
+    vec3 viewDirection = normalize(worldPos - cameraPosition);
+    vec3 lightReflect = normalize(reflect(lightDirectionN, normalN));
+    float specularFactor = clamp(dot(lightReflect, -viewDirection), 0, 1);
+    specularFactor = pow(specularFactor, 8);
+    vec3 specular = lightColor * specularFactor * flag;
+
     vec3 result = diffuse + specular;
     FragColor = vec4(result, 1.0f);
 }
