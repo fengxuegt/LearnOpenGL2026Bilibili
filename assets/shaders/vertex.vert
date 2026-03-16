@@ -9,9 +9,10 @@ out vec3 worldPos;
 uniform mat4 transMat;
 uniform mat4 viewMat;
 uniform mat4 projectionMat;
+uniform mat4 normalMat;
 void main() {
     gl_Position = projectionMat * viewMat * transMat * vec4(aPos, 1.0f);
     fUV = aUV;
-    fNormal = aNormal;
+    fNormal = mat3(normalMat) * aNormal;
     worldPos = (transMat * vec4(aPos, 1.0f)).xyz;
 }

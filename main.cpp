@@ -24,6 +24,7 @@ Geometry *box = nullptr;
 Geometry *sphere = nullptr;
 glm::vec3 lightDirection = glm::vec3(-1.0f, -1.0f, -1.0f); // 光的方向
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 光的颜色
+glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -85,18 +86,23 @@ void render() {
 
     shader->setUniformVec3Float("lightDirection", lightDirection);
     shader->setUniformVec3Float("lightColor", lightColor);
+    shader->setUniformVec3Float("ambientColor", ambientColor);
     shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+    shader->setUniformFloat("specularIntensity", 8.0f);
+
     texture->Bind();
     transMatBox = glm::mat4(1.0f);
     transMatBox = glm::translate(transMatBox, glm::vec3(3.0f, 0.5f, 1.0f));
     transMatBox = glm::rotate(transMatBox, glm::radians((float)glfwGetTime() * 100), glm::vec3(0.0f, 1.0f, 0.0f));
     shader->setUniformMat4("transMat", transMatBox);
+    shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(transMatBox)));
     LWGLCALL(glBindVertexArray(sphere->getVao()));
     LWGLCALL(glDrawElements(GL_TRIANGLES,  sphere->getIndicesCount(), GL_UNSIGNED_INT, NULL));
 
     texture->Bind();
     transMat = glm::rotate(glm::mat4(1.0f), glm::radians((float)glfwGetTime() * 100), glm::vec3(0.0f, 1.0f, 0.0f));
     shader->setUniformMat4("transMat", transMat);
+    shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(transMat)));
     LWGLCALL(glBindVertexArray(box->getVao()));
     LWGLCALL(glDrawElements(GL_TRIANGLES,  box->getIndicesCount(), GL_UNSIGNED_INT, NULL));
 
