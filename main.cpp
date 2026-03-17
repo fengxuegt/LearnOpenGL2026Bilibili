@@ -150,6 +150,8 @@ void prepare() {
     sphereMesh->mMaterial = sphereMaterial;
     sphereMesh->setPosition(glm::vec3(4.0, 0.0, 0.0));
     meshes.push_back(sphereMesh);
+
+    boxMesh->addChild(sphereMesh);
     plane = Geometry::createPlane(3, 3);
 }
 
@@ -199,8 +201,8 @@ int main() {
     prepare();
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (LWAPP->update()) {
-        meshes[1]->rotateY(0.3);
-        meshes[1]->rotateX(0.8);
+        meshes[0]->rotateY(0.3);
+        meshes[0]->rotateX(0.8);
         cameraControl->update();
         renderer->render(meshes, camera, dirLight, ambLight);
         renderIMGUI();

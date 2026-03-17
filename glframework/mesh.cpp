@@ -5,6 +5,7 @@
 #include "mesh.h"
 
 Mesh::Mesh() {
+    mType = ObjectType::Mesh;
 }
 
 Mesh::Mesh(Geometry *geometry, Material *material) {

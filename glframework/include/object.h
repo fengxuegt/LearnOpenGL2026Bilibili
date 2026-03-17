@@ -6,6 +6,13 @@
 #define OBJECT_H
 
 #include "core.h"
+
+enum class ObjectType {
+    Mesh,
+    Object,
+    Scene
+};
+
 class Object {
 public:
     Object();
@@ -19,7 +26,9 @@ public:
     glm::mat4 getModelMatrix();
     glm::mat4 getModelMatrixAPI();
     void setPosition(glm::vec3 position);
-
+    Object* getParent();
+    void addChild(Object* child);
+    ObjectType getType();
 
 
 protected:
@@ -30,11 +39,18 @@ protected:
 
     glm::vec3 mScale{1.0f, 1.0f, 1.0f};
 
+    // parent and child
+    std::vector<Object*> mChildren{};
+    Object *mParent{nullptr};
+    ObjectType mType{ObjectType::Mesh};
 
 
 
 };
 
+inline ObjectType Object::getType() {
+    return mType;
+}
 
 
 #endif //OBJECT_H
