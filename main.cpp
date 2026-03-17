@@ -7,6 +7,8 @@
 #include "application.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <camera.h>
+#include <glframework/material/phongmaterial.h>
+#include <glframework/renderer/renderer.h>
 
 #include "cameracontrol.h"
 #include "geometry.h"
@@ -15,6 +17,8 @@
 #include "texture.h"
 #include "trackballcameracontrol.h"
 
+Renderer *renderer;
+std::vector<Mesh*> meshes;
 Camera *camera = nullptr;
 CameraControl *cameraControl = nullptr;
 glm::mat4 transMat(1.0f);
@@ -22,6 +26,9 @@ glm::mat4 transMatBox(1.0f);
 Geometry *plane = nullptr;
 Geometry *box = nullptr;
 Geometry *sphere = nullptr;
+
+DirectionalLight *dirLight = nullptr;
+AmbientLight *ambLight = nullptr;
 glm::vec3 lightDirection = glm::vec3(-1.0f, -1.0f, -1.0f); // 光的方向
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 光的颜色
 glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -61,7 +68,7 @@ void prepareTexture() {
     boxTexture = new Texture("assets/textures/box.png", 0);
 }
 void prepareShaderClass() {
-    shader = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
+    shader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
 }
 void prepareCamera() {
     camera = new PerspectiveCamera(60.0f, (float)LWAPP->getWidth()/ (float)LWAPP->getHeight(), 0.1f, 1000.0f);
@@ -108,6 +115,38 @@ void render() {
 
     shader->unuseProgram();
 }
+void prepare() {
+    renderer = new Renderer();
+
+    // first mesh
+    Mesh *boxMesh = new Mesh();
+    box = Geometry::createBox(3);
+    boxMesh->mGeometry = box;
+    auto *boxMaterial = new PhongMaterial();
+    boxMaterial->mDiffuse =  new Texture("assets/textures/asuna.png", 0);
+    boxMaterial->mShininess = 64.0f;
+    boxMesh->mMaterial = boxMaterial;
+    meshes.push_back(boxMesh);
+
+    // light init
+    dirLight = new DirectionalLight();
+    dirLight->mLightColor = lightColor;
+    dirLight->mLightDirection = lightDirection;
+    dirLight->mLightIntensity = 0.5f;
+    ambLight = new AmbientLight();
+    ambLight->mLightColor = lightColor;
+
+    // second mesh
+    Mesh *sphereMesh = new Mesh();
+    sphere = Geometry::createSphere(5);
+    sphereMesh->mGeometry = sphere;
+    auto *sphereMaterial = new PhongMaterial();
+    sphereMaterial->mDiffuse = new Texture("assets/textures/box.png", 0);
+    sphereMaterial->mShininess = 64.0f;
+    sphereMesh->mMaterial = sphereMaterial;
+    meshes.push_back(sphereMesh);
+    plane = Geometry::createPlane(3, 3);
+}
 
 int main() {
     if (!LWAPP->init("OpenGL basic", 800, 600)) {
@@ -119,15 +158,16 @@ int main() {
     LWAPP->setCursorPositionCallBack(cursorPositionCallBack);
     LWAPP->setScrollCallBack(scrollCallback);
 
-    prepareState();
-    prepareMesh();
-    prepareShaderClass();
-    prepareTexture();
+    // prepareState();
+    // prepareMesh();
+    // prepareShaderClass();
+    // prepareTexture();
     prepareCamera();
-
+    prepare();
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (LWAPP->update()) {
         cameraControl->update();
-        render();
+        renderer->render(meshes, camera, dirLight, ambLight);
     }
 
     LWAPP->destroy();

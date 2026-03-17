@@ -7,6 +7,7 @@ uniform vec3 lightDirection;
 uniform vec3 lightColor;
 uniform vec3 ambientColor;
 uniform float specularIntensity;
+uniform float mShiness;
 uniform sampler2D samplerAsuna;
 uniform vec3 cameraPosition;
 void main() {
@@ -19,8 +20,8 @@ void main() {
     vec3 viewDirection = normalize(worldPos - cameraPosition);
     vec3 lightReflect = normalize(reflect(lightDirectionN, normalN));
     float specularFactor = clamp(dot(lightReflect, -viewDirection), 0, 1);
-    specularFactor = pow(specularFactor, specularIntensity);
-    vec3 specular = lightColor * specularFactor * flag;
+    specularFactor = pow(specularFactor, mShiness);
+    vec3 specular = lightColor * specularFactor * flag * specularIntensity;
 
     vec3 ambient = ambientColor * objectColor;
 
