@@ -12,6 +12,10 @@ void Application::getCurrentXYPosition(double *x, double *y) {
     glfwGetCursorPos(mWindow, x, y);
 }
 
+GLFWwindow* Application::getWindow() {
+    return mWindow;
+}
+
 bool Application::init(const char* title, int width, int height) {
     mWidth = width;
     mHeight = height;

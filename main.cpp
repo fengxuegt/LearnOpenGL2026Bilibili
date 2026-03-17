@@ -7,6 +7,9 @@
 #include "application.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <camera.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <glframework/material/phongmaterial.h>
 #include <glframework/renderer/renderer.h>
 
@@ -120,12 +123,13 @@ void prepare() {
 
     // first mesh
     Mesh *boxMesh = new Mesh();
-    box = Geometry::createBox(3);
+    box = Geometry::createBox(2);
     boxMesh->mGeometry = box;
     auto *boxMaterial = new PhongMaterial();
     boxMaterial->mDiffuse =  new Texture("assets/textures/asuna.png", 0);
     boxMaterial->mShininess = 64.0f;
     boxMesh->mMaterial = boxMaterial;
+    boxMesh->setPosition(glm::vec3(0.0, 0, 0));
     meshes.push_back(boxMesh);
 
     // light init
@@ -138,14 +142,41 @@ void prepare() {
 
     // second mesh
     Mesh *sphereMesh = new Mesh();
-    sphere = Geometry::createSphere(5);
+    sphere = Geometry::createSphere(1);
     sphereMesh->mGeometry = sphere;
     auto *sphereMaterial = new PhongMaterial();
     sphereMaterial->mDiffuse = new Texture("assets/textures/box.png", 0);
     sphereMaterial->mShininess = 64.0f;
     sphereMesh->mMaterial = sphereMaterial;
+    sphereMesh->setPosition(glm::vec3(4.0, 0.0, 0.0));
     meshes.push_back(sphereMesh);
     plane = Geometry::createPlane(3, 3);
+}
+
+void initIMGUI() {
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(LWAPP->getWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+
+}
+void renderIMGUI() {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("Hello world");
+    ImGui::Text("Hello World");
+    ImGui::Button("Test Button", ImVec2(20, 20));
+    ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
+    ImGui::End();
+
+    ImGui::Render();
+    int display_w, display_h;
+    glfwGetFramebufferSize(LWAPP->getWindow(), &display_w, &display_h);
+    glViewport(0, 0, display_w, display_h);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 }
 
 int main() {
@@ -162,12 +193,17 @@ int main() {
     // prepareMesh();
     // prepareShaderClass();
     // prepareTexture();
+    initIMGUI();
+
     prepareCamera();
     prepare();
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (LWAPP->update()) {
+        meshes[1]->rotateY(0.3);
+        meshes[1]->rotateX(0.8);
         cameraControl->update();
         renderer->render(meshes, camera, dirLight, ambLight);
+        renderIMGUI();
     }
 
     LWAPP->destroy();

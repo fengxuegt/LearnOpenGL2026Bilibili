@@ -58,3 +58,7 @@ glm::mat4 Object::getModelMatrixAPI()
 
     return model;
 }
+
+void Object::setPosition(glm::vec3 position) {
+    mPosition = position;
+}

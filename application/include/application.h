@@ -22,6 +22,8 @@ public:
     void setScrollCallBack(ScrollCallBack callback) {mScrollCallBack = callback;}
 
     void getCurrentXYPosition(double *x, double *y);
+    GLFWwindow* getWindow();
+
 
 public:
     bool init(const char* title, int width, int height);

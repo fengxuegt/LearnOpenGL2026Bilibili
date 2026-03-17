@@ -18,6 +18,7 @@ public:
     void setScale(glm::vec3 scale);
     glm::mat4 getModelMatrix();
     glm::mat4 getModelMatrixAPI();
+    void setPosition(glm::vec3 position);
 
 
 
