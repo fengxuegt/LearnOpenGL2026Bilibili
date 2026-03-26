@@ -6,6 +6,10 @@
 #include "stb_image.h"
 
 std::map<std::string, Texture*> Texture::mTextureCache{};
+
+Texture::Texture() {
+}
+
 Texture * Texture::createTexture(const std::string &path, unsigned int unit) {
     auto it = mTextureCache.find(path);
     if (it != mTextureCache.end()) {
@@ -25,6 +29,37 @@ Texture * Texture::createTextureFromMemory(const std::string &path, unsigned int
     auto texture = new Texture(unit, dataIn, widthIn, heightIn);
     mTextureCache[path] = texture;
     return texture;
+}
+
+Texture * Texture::createColorAttachment(int width, int height, int unitID) {
+    Texture *colorAttachment = new Texture();
+    colorAttachment->mWidth = width;
+    colorAttachment->mHeight = height;
+    colorAttachment->mTextureID = unitID;
+    glGenTextures(1, &colorAttachment->mTextureID);
+    glActiveTexture(GL_TEXTURE0 + unitID);
+    glBindTexture(GL_TEXTURE_2D, colorAttachment->mTextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    return colorAttachment;
+
+
+}
+
+Texture * Texture::createDepthAttachment(int width, int height, int unitID) {
+    Texture *depthAttachment = new Texture();
+    depthAttachment->mWidth = width;
+    depthAttachment->mHeight = height;
+    depthAttachment->mUnitID = unitID;
+    glGenTextures(1, &depthAttachment->mTextureID);
+    glActiveTexture(GL_TEXTURE0 + unitID);
+    glBindTexture(GL_TEXTURE_2D, depthAttachment->mTextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    return depthAttachment;
 }
 
 Texture::Texture(const std::string &path, int unitID) {

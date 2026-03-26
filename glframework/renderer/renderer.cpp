@@ -6,11 +6,13 @@
 
 #include <glframework/material/phongmaterial.h>
 
+#include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
 Renderer::Renderer() {
     mPhongShader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
     mWhiteShader = new Shader("assets/shaders/white.vert", "assets/shaders/white.frag");
+    mScreenPlaneShader = new Shader("assets/shaders/screenplane.vert", "assets/shaders/screenplane.frag");
 }
 
 Renderer::~Renderer() {
@@ -18,31 +20,11 @@ Renderer::~Renderer() {
 
 void Renderer::render(const std::vector<Mesh *> &meshes, Camera *camera, DirectionalLight *directionalLight,
     AmbientLight *ambientLight) {
-
-    // 设置OpenGL 状态机参数
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glStencilMask(0XFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-    // glStencilFunc(GL_LESS, 1, 0xFF);
-
     // 清理画布
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT| GL_STENCIL_BUFFER_BIT);
-
+    glEnable(GL_DEPTH_TEST);
     // 遍历mesh列表
     for (int i = 0; i < meshes.size(); i++) {
-
-        if (i == 0) {
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-            glStencilMask(0XFF);
-        } else if (i == 1) {
-            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilMask(0X00);
-        }
-
-
         auto mesh = meshes[i];
         auto geometry = mesh->mGeometry;
         auto material = mesh->mMaterial;
@@ -70,11 +52,16 @@ void Renderer::render(const std::vector<Mesh *> &meshes, Camera *camera, Directi
             }
                 break;
             case MaterialType::WhiteMaterial: {
-
                 WhiteMaterial *whiteMaterial = (WhiteMaterial*)(material);
                 shader->setUniformMat4("viewMat", camera->getViewMatrix());
                 shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
                 shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+            }
+            break;
+            case MaterialType::ScreenPlaneMaterial: {
+                ScreenPlaneMaterial *screenPlaneMaterial = (ScreenPlaneMaterial*)(material);
+                screenPlaneMaterial->mDiffuse->Bind();
+                shader->setUniformInt("diffuse", 0);
             }
             break;
             default:
@@ -88,7 +75,12 @@ void Renderer::render(const std::vector<Mesh *> &meshes, Camera *camera, Directi
     }
 }
 
-void Renderer::render(Scene *scene, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight) {
+void Renderer::render(Scene *scene, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight, int fbo) {
+    if (fbo) {
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    } else {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -130,7 +122,13 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
 
             }
-            break;
+                break;
+            case MaterialType::ScreenPlaneMaterial: {
+                ScreenPlaneMaterial *screenPlaneMaterial = (ScreenPlaneMaterial*)(material);
+                screenPlaneMaterial->mDiffuse->Bind();
+                shader->setUniformInt("diffuse", 0);
+            }
+                break;
             default:
                 break;
         }
@@ -155,6 +153,8 @@ Shader * Renderer::pickShader(MaterialType type) {
         case MaterialType::WhiteMaterial:
             resultShader = mWhiteShader;
             break;
+        case MaterialType::ScreenPlaneMaterial:
+            resultShader = mScreenPlaneShader;
         default:
             break;
     }

@@ -22,6 +22,7 @@ public:
     static Geometry *createBox(float size);
     static Geometry *createSphere(float size);
     static Geometry *createPlane(float width, float height);
+    static Geometry *createScreenPlane(float width, float height);
 
 
 public:

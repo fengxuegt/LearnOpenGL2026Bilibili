@@ -20,7 +20,7 @@ public:
     Renderer();
     ~Renderer();
     void render(const std::vector<Mesh*> &meshes, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight);
-    void render(Scene * scene, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight);
+    void render(Scene * scene, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight, int fbo = 0);
     void renderObject(Object *object, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight);
 private:
     Shader* pickShader(MaterialType type);
@@ -29,6 +29,7 @@ private:
     std::vector<Mesh*> mMeshes;
     Shader *mPhongShader{nullptr};
     Shader *mWhiteShader{nullptr};
+    Shader *mScreenPlaneShader{nullptr};
 };
 
 

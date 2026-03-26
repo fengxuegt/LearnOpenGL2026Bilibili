@@ -11,6 +11,7 @@
 
 class Texture {
 public:
+	Texture();
 	static Texture* createTexture(const std::string& path, unsigned int unit);
 	static Texture* createTextureFromMemory(
 		const std::string& path, 
@@ -19,6 +20,10 @@ public:
 		uint32_t widthIn,
 		uint32_t heightIn
 	);
+	static Texture* createColorAttachment(int width, int height, int unitID);
+	static Texture* createDepthAttachment(int width, int height, int unitID);
+
+	int getTextureID() const { return mTextureID; }
 
 public:
     Texture(const std::string &path, int unitID);

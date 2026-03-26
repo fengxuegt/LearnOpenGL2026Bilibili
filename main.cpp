@@ -20,11 +20,14 @@
 #include "stb_image.h"
 #include "texture.h"
 #include "trackballcameracontrol.h"
+#include "glframework/framebuffer.h"
+#include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
 Renderer *renderer;
 std::vector<Mesh*> meshes;
-Scene *scene = nullptr;
+Scene *offScene = nullptr;
+Scene *onScene = nullptr;
 Camera *camera = nullptr;
 CameraControl *cameraControl = nullptr;
 glm::mat4 transMat(1.0f);
@@ -32,6 +35,7 @@ glm::mat4 transMatBox(1.0f);
 Geometry *plane = nullptr;
 Geometry *box = nullptr;
 Geometry *sphere = nullptr;
+FrameBuffer *fbo = nullptr;
 
 DirectionalLight *dirLight = nullptr;
 AmbientLight *ambLight = nullptr;
@@ -75,7 +79,7 @@ void prepareCamera() {
 
 void prepare() {
     renderer = new Renderer();
-    scene = new Scene();
+    offScene = new Scene();
 
     // first mesh
     Mesh *boxMesh = new Mesh();
@@ -86,8 +90,20 @@ void prepare() {
     boxMaterial->mShininess = 64.0f;
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
-    meshes.push_back(boxMesh);
+    offScene->addChild(boxMesh);
 
+    onScene = new Scene();
+    fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
+
+    Mesh *mesh = new Mesh();
+    Geometry * screenPlane = Geometry::createScreenPlane(LWAPP->getWidth(), LWAPP->getHeight());
+    ScreenPlaneMaterial *screenPlaneMaterial = new ScreenPlaneMaterial();
+    screenPlaneMaterial->mDiffuse = fbo->mColorAttachment;
+    // screenPlaneMaterial->mDiffuse = new Texture("assets/textures/asuna.png", 0);
+    mesh->mGeometry = screenPlane;
+    mesh->mMaterial = screenPlaneMaterial;
+
+    onScene->addChild(mesh);
     // light init
     dirLight = new DirectionalLight();
     dirLight->mLightColor = lightColor;
@@ -96,102 +112,8 @@ void prepare() {
     ambLight = new AmbientLight();
     ambLight->mLightColor = lightColor;
 
-    // second mesh
-    Mesh *sphereMesh = new Mesh();
-    sphere = Geometry::createSphere(1);
-    sphereMesh->mGeometry = sphere;
-    auto *sphereMaterial = new PhongMaterial();
-    sphereMaterial->mDiffuse = new Texture("assets/textures/box.png", 0);
-    sphereMaterial->mShininess = 64.0f;
-    sphereMesh->mMaterial = sphereMaterial;
-    sphereMesh->setPosition(glm::vec3(4.0, 0.0, 0.0));
-    meshes.push_back(sphereMesh);
-
-    // boxMesh->addChild(sphereMesh);
-    plane = Geometry::createPlane(3, 3);
-
-    scene->addChild(boxMesh);
-
-
-    // scene->addChild(sphereMesh);
 }
 
-void prepareStencilTest() {
-    renderer = new Renderer();
-    scene = new Scene();
-
-    // first mesh
-    Mesh *boxMesh = new Mesh();
-    box = Geometry::createBox(2);
-    boxMesh->mGeometry = box;
-    auto *boxMaterial = new PhongMaterial();
-    boxMaterial->mDiffuse =  new Texture("assets/textures/asuna.png", 0);
-    boxMaterial->mShininess = 64.0f;
-    boxMesh->mMaterial = boxMaterial;
-    boxMesh->setPosition(glm::vec3(0.0, 0, 0));
-    meshes.push_back(boxMesh);
-
-    Mesh *outBoxMesh = new Mesh();
-    outBoxMesh->mGeometry = box;
-    outBoxMesh->mMaterial = new WhiteMaterial();
-    outBoxMesh->setPosition(boxMesh->getPosition());
-    outBoxMesh->setScale(glm::vec3(1.2f, 1.2f, 1.2f));
-    // light init
-    dirLight = new DirectionalLight();
-    dirLight->mLightColor = lightColor;
-    dirLight->mLightDirection = lightDirection;
-    dirLight->mLightIntensity = 0.5f;
-    ambLight = new AmbientLight();
-    ambLight->mLightColor = lightColor;
-
-    // scene->addChild(boxMesh);
-    // scene->addChild(outBoxMesh);
-    // meshes.push_back(boxMesh);
-    meshes.push_back(outBoxMesh);
-
-    Mesh *secondBoxMesh = new Mesh();
-    secondBoxMesh->mGeometry = box;
-    secondBoxMesh->setPosition(boxMesh->getPosition() + glm::vec3(0.5, 0.5, 0));
-    secondBoxMesh->mMaterial = boxMaterial;
-    // meshes.push_back(secondBoxMesh);
-
-    Mesh *outSecondBoxMesh = new Mesh();
-    outSecondBoxMesh->mGeometry = box;
-    outSecondBoxMesh->setPosition(boxMesh->getPosition() + glm::vec3(0.5, 0.5, 0));
-    outSecondBoxMesh->mMaterial = new WhiteMaterial();
-    outSecondBoxMesh->setScale(glm::vec3(1.2f, 1.2f, 1.2f));
-    // meshes.push_back(outSecondBoxMesh);
-
-}
-void prepareFBX() {
-    renderer = new Renderer();
-    scene = new Scene();
-    auto testModel = AssimpLoader::load("assets/fbx/Fist Fight B.fbx");
-    // testModel->setScale(glm::vec3(0.05f, 0.05f, 0.05f));
-    scene->addChild(testModel);
-
-    dirLight = new DirectionalLight();
-    dirLight->mLightColor = lightColor;
-    dirLight->mLightDirection = lightDirection;
-    dirLight->mLightIntensity = 0.5f;
-    ambLight = new AmbientLight();
-    ambLight->mLightColor = lightColor;
-    ambLight->mLightIntensity = 0.5f;
-
-
-    // second mesh
-    Mesh *sphereMesh = new Mesh();
-    sphere = Geometry::createSphere(1);
-    sphereMesh->mGeometry = sphere;
-    auto *sphereMaterial = new PhongMaterial();
-    sphereMaterial->mDiffuse = new Texture("assets/textures/box.png", 0);
-    sphereMaterial->mShininess = 64.0f;
-    sphereMesh->mMaterial = sphereMaterial;
-    sphereMesh->setPosition(glm::vec3(4.0, 0.0, 0.0));
-    meshes.push_back(sphereMesh);
-
-    scene->addChild(sphereMesh);
-}
 
 void initIMGUI() {
     ImGui::CreateContext();
@@ -208,7 +130,7 @@ void renderIMGUI() {
     ImGui::Begin("Hello world");
     ImGui::Text("Hello World");
     ImGui::Button("Test Button", ImVec2(20, 20));
-    ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
+    // ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
     ImGui::End();
 
     ImGui::Render();
@@ -229,21 +151,15 @@ int main() {
     LWAPP->setCursorPositionCallBack(cursorPositionCallBack);
     LWAPP->setScrollCallBack(scrollCallback);
 
-    // prepareState();
-    // prepareMesh();
-    // prepareShaderClass();
-    // prepareTexture();
     initIMGUI();
-
+    prepare();
     prepareCamera();
-    // prepareFBX();
-    prepareStencilTest();
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (LWAPP->update()) {
         cameraControl->update();
-        // renderer->render(scene, camera, dirLight, ambLight);
+        renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
         renderIMGUI();
-        renderer->render(meshes, camera, dirLight, ambLight);
+        renderer->render(onScene, camera, dirLight, ambLight, 0);
     }
 
     LWAPP->destroy();
