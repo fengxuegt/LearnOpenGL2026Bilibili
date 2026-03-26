@@ -27,6 +27,18 @@ void Object::rotateZ(float angle) {
     mAngleZ += angle;
 }
 
+void Object::setAngleX(float angle) {
+    mAngleX = angle;
+}
+
+void Object::setAngleY(float angle) {
+    mAngleY = angle;
+}
+
+void Object::setAngleZ(float angle) {
+    mAngleZ = angle;
+}
+
 void Object::setScale(glm::vec3 scale) {
     mScale = scale;
 }
@@ -71,6 +83,10 @@ glm::mat4 Object::getModelMatrixAPI()
 
 void Object::setPosition(glm::vec3 position) {
     mPosition = position;
+}
+
+glm::vec3 Object::getPosition() {
+    return mPosition;
 }
 
 Object* Object::getParent() {

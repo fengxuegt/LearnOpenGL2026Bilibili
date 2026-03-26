@@ -10,6 +10,8 @@ add_library(glframework shader.cpp
         light/ambientlight.cpp
         renderer/renderer.cpp
         scene.cpp
-        include/scene.h)
+        include/scene.h
+        material/whitematerial.cpp
+        material/whitematerial.h)
 target_include_directories(glframework PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(glframework glad glfw lwapp glm camera)

@@ -6,6 +6,7 @@
 #include "checkerror.h"
 #include "application.h"
 #define STB_IMAGE_IMPLEMENTATION
+#include <assimpLoader.h>
 #include <camera.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -19,9 +20,11 @@
 #include "stb_image.h"
 #include "texture.h"
 #include "trackballcameracontrol.h"
+#include "glframework/material/whitematerial.h"
 
 Renderer *renderer;
 std::vector<Mesh*> meshes;
+Scene *scene = nullptr;
 Camera *camera = nullptr;
 CameraControl *cameraControl = nullptr;
 glm::mat4 transMat(1.0f);
@@ -60,66 +63,19 @@ void scrollCallback(double xoffset, double yoffset) {
     cameraControl->onScroll(yoffset);
 }
 
-GLuint asunavao, boxvao;
-GLuint program;
 Shader *shader = nullptr;
 Texture *texture = nullptr;
 Texture *boxTexture = nullptr;
 
-void prepareTexture() {
-    texture = new Texture("assets/textures/asuna.png", 0);
-    boxTexture = new Texture("assets/textures/box.png", 0);
-}
-void prepareShaderClass() {
-    shader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
-}
 void prepareCamera() {
     camera = new PerspectiveCamera(60.0f, (float)LWAPP->getWidth()/ (float)LWAPP->getHeight(), 0.1f, 1000.0f);
     cameraControl = new TrackBallCameraControl();
     cameraControl->setCamera(camera);
 }
-void prepareState (){
-    LWGLCALL(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
-    glEnable(GL_DEPTH_TEST);
-}
-void prepareMesh() {
-    plane = Geometry::createPlane(3, 3);
-    box = Geometry::createBox(3);
-    sphere = Geometry::createSphere(1);
-}
-void render() {
-    LWGLCALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-    shader->useProgram();
-    shader->setUniformInt("samplerAsuna", 0);
-    shader->setUniformMat4("viewMat", camera->getViewMatrix());
-    shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
 
-    shader->setUniformVec3Float("lightDirection", lightDirection);
-    shader->setUniformVec3Float("lightColor", lightColor);
-    shader->setUniformVec3Float("ambientColor", ambientColor);
-    shader->setUniformVec3Float("cameraPosition", camera->mPosition);
-    shader->setUniformFloat("specularIntensity", 8.0f);
-
-    texture->Bind();
-    transMatBox = glm::mat4(1.0f);
-    transMatBox = glm::translate(transMatBox, glm::vec3(3.0f, 0.5f, 1.0f));
-    transMatBox = glm::rotate(transMatBox, glm::radians((float)glfwGetTime() * 100), glm::vec3(0.0f, 1.0f, 0.0f));
-    shader->setUniformMat4("transMat", transMatBox);
-    shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(transMatBox)));
-    LWGLCALL(glBindVertexArray(sphere->getVao()));
-    LWGLCALL(glDrawElements(GL_TRIANGLES,  sphere->getIndicesCount(), GL_UNSIGNED_INT, NULL));
-
-    texture->Bind();
-    transMat = glm::rotate(glm::mat4(1.0f), glm::radians((float)glfwGetTime() * 100), glm::vec3(0.0f, 1.0f, 0.0f));
-    shader->setUniformMat4("transMat", transMat);
-    shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(transMat)));
-    LWGLCALL(glBindVertexArray(box->getVao()));
-    LWGLCALL(glDrawElements(GL_TRIANGLES,  box->getIndicesCount(), GL_UNSIGNED_INT, NULL));
-
-    shader->unuseProgram();
-}
 void prepare() {
     renderer = new Renderer();
+    scene = new Scene();
 
     // first mesh
     Mesh *boxMesh = new Mesh();
@@ -151,8 +107,90 @@ void prepare() {
     sphereMesh->setPosition(glm::vec3(4.0, 0.0, 0.0));
     meshes.push_back(sphereMesh);
 
-    boxMesh->addChild(sphereMesh);
+    // boxMesh->addChild(sphereMesh);
     plane = Geometry::createPlane(3, 3);
+
+    scene->addChild(boxMesh);
+
+
+    // scene->addChild(sphereMesh);
+}
+
+void prepareStencilTest() {
+    renderer = new Renderer();
+    scene = new Scene();
+
+    // first mesh
+    Mesh *boxMesh = new Mesh();
+    box = Geometry::createBox(2);
+    boxMesh->mGeometry = box;
+    auto *boxMaterial = new PhongMaterial();
+    boxMaterial->mDiffuse =  new Texture("assets/textures/asuna.png", 0);
+    boxMaterial->mShininess = 64.0f;
+    boxMesh->mMaterial = boxMaterial;
+    boxMesh->setPosition(glm::vec3(0.0, 0, 0));
+    meshes.push_back(boxMesh);
+
+    Mesh *outBoxMesh = new Mesh();
+    outBoxMesh->mGeometry = box;
+    outBoxMesh->mMaterial = new WhiteMaterial();
+    outBoxMesh->setPosition(boxMesh->getPosition());
+    outBoxMesh->setScale(glm::vec3(1.2f, 1.2f, 1.2f));
+    // light init
+    dirLight = new DirectionalLight();
+    dirLight->mLightColor = lightColor;
+    dirLight->mLightDirection = lightDirection;
+    dirLight->mLightIntensity = 0.5f;
+    ambLight = new AmbientLight();
+    ambLight->mLightColor = lightColor;
+
+    // scene->addChild(boxMesh);
+    // scene->addChild(outBoxMesh);
+    // meshes.push_back(boxMesh);
+    meshes.push_back(outBoxMesh);
+
+    Mesh *secondBoxMesh = new Mesh();
+    secondBoxMesh->mGeometry = box;
+    secondBoxMesh->setPosition(boxMesh->getPosition() + glm::vec3(0.5, 0.5, 0));
+    secondBoxMesh->mMaterial = boxMaterial;
+    // meshes.push_back(secondBoxMesh);
+
+    Mesh *outSecondBoxMesh = new Mesh();
+    outSecondBoxMesh->mGeometry = box;
+    outSecondBoxMesh->setPosition(boxMesh->getPosition() + glm::vec3(0.5, 0.5, 0));
+    outSecondBoxMesh->mMaterial = new WhiteMaterial();
+    outSecondBoxMesh->setScale(glm::vec3(1.2f, 1.2f, 1.2f));
+    // meshes.push_back(outSecondBoxMesh);
+
+}
+void prepareFBX() {
+    renderer = new Renderer();
+    scene = new Scene();
+    auto testModel = AssimpLoader::load("assets/fbx/Fist Fight B.fbx");
+    // testModel->setScale(glm::vec3(0.05f, 0.05f, 0.05f));
+    scene->addChild(testModel);
+
+    dirLight = new DirectionalLight();
+    dirLight->mLightColor = lightColor;
+    dirLight->mLightDirection = lightDirection;
+    dirLight->mLightIntensity = 0.5f;
+    ambLight = new AmbientLight();
+    ambLight->mLightColor = lightColor;
+    ambLight->mLightIntensity = 0.5f;
+
+
+    // second mesh
+    Mesh *sphereMesh = new Mesh();
+    sphere = Geometry::createSphere(1);
+    sphereMesh->mGeometry = sphere;
+    auto *sphereMaterial = new PhongMaterial();
+    sphereMaterial->mDiffuse = new Texture("assets/textures/box.png", 0);
+    sphereMaterial->mShininess = 64.0f;
+    sphereMesh->mMaterial = sphereMaterial;
+    sphereMesh->setPosition(glm::vec3(4.0, 0.0, 0.0));
+    meshes.push_back(sphereMesh);
+
+    scene->addChild(sphereMesh);
 }
 
 void initIMGUI() {
@@ -198,14 +236,14 @@ int main() {
     initIMGUI();
 
     prepareCamera();
-    prepare();
+    // prepareFBX();
+    prepareStencilTest();
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (LWAPP->update()) {
-        meshes[0]->rotateY(0.3);
-        meshes[0]->rotateX(0.8);
         cameraControl->update();
-        renderer->render(meshes, camera, dirLight, ambLight);
+        // renderer->render(scene, camera, dirLight, ambLight);
         renderIMGUI();
+        renderer->render(meshes, camera, dirLight, ambLight);
     }
 
     LWAPP->destroy();

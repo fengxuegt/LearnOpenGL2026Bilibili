@@ -19,17 +19,28 @@ public:
     virtual ~Object();
 
     void setPositon(glm::vec3 position);
+
     void rotateX(float angle);
     void rotateY(float angle);
     void rotateZ(float angle);
+
+    void setAngleX(float angle);
+    void setAngleY(float angle);
+    void setAngleZ(float angle);
+
     void setScale(glm::vec3 scale);
+
     glm::mat4 getModelMatrix();
     glm::mat4 getModelMatrixAPI();
+
     void setPosition(glm::vec3 position);
+    glm::vec3 getPosition();
+
     Object* getParent();
     void addChild(Object* child);
-    ObjectType getType();
+    std::vector<Object*> getChildren();
 
+    ObjectType getType();
 
 protected:
     glm::vec3 mPosition;  // 物体所处的位置
@@ -47,6 +58,10 @@ protected:
 
 
 };
+
+inline std::vector<Object *> Object::getChildren() {
+    return mChildren;
+}
 
 inline ObjectType Object::getType() {
     return mType;

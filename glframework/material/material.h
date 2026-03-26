@@ -7,7 +7,8 @@
 
 
 enum class MaterialType {
-    PhongMaterial
+    PhongMaterial,
+    WhiteMaterial,
 };
 class Material {
 public:
