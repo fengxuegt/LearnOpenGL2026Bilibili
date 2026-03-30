@@ -32,6 +32,7 @@ private:
     Shader *mWhiteShader{nullptr};
     Shader *mScreenPlaneShader{nullptr};
     Shader *mCubeShader{nullptr};
+    Shader *mPhongEnvShader{nullptr};
 };
 
 

@@ -22,6 +22,7 @@
 #include "trackballcameracontrol.h"
 #include "glframework/framebuffer.h"
 #include "glframework/material/cubematerial.h"
+#include "glframework/material/phongenvmaterial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
@@ -104,8 +105,9 @@ void prepare() {
     Mesh *sphereMesh = new Mesh();
     sphere = Geometry::createSphere(1);
     sphereMesh->mGeometry = sphere;
-    auto *sphereMaterial = new PhongMaterial();
+    auto *sphereMaterial = new PhongEnvMaterial();
     sphereMaterial->mDiffuse = new Texture("assets/textures/earth.png", 0);
+    sphereMaterial->mCubeMap = new Texture(paths, 1);
     sphereMesh->mMaterial = sphereMaterial;
     offScene->addChild(sphereMesh);
     offScene->addChild(boxMesh);

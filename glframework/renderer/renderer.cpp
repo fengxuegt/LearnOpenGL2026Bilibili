@@ -7,6 +7,7 @@
 #include <glframework/material/phongmaterial.h>
 
 #include "glframework/material/cubematerial.h"
+#include "glframework/material/phongenvmaterial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
@@ -15,6 +16,7 @@ Renderer::Renderer() {
     mWhiteShader = new Shader("assets/shaders/white.vert", "assets/shaders/white.frag");
     mScreenPlaneShader = new Shader("assets/shaders/screenplane.vert", "assets/shaders/screenplane.frag");
     mCubeShader = new Shader("assets/shaders/cube.vert", "assets/shaders/cube.frag");
+    mPhongEnvShader = new Shader("assets/shaders/phongenv.vert", "assets/shaders/phongenv.frag");
 }
 
 Renderer::~Renderer() {
@@ -122,6 +124,26 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                     shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
                 }
                 break;
+            case MaterialType::PhongEnvMaterial: {
+                PhongEnvMaterial *phongMaterial = (PhongEnvMaterial*)(material);
+                // 更新Shader的Uniform变量
+                shader->setUniformInt("cubeSampler", 1);
+                shader->setUniformInt("samplerAsuna", 0);
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+
+                shader->setUniformVec3Float("lightDirection", directionalLight->mLightDirection);
+                shader->setUniformVec3Float("lightColor", directionalLight->mLightColor);
+                shader->setUniformVec3Float("ambientColor", ambientLight->mLightColor);
+                shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+                shader->setUniformFloat("specularIntensity", directionalLight->mLightIntensity);
+                shader->setUniformFloat("mShiness", phongMaterial->mShininess);
+
+                phongMaterial->mDiffuse->Bind();
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
+            }
+            break;
             case MaterialType::WhiteMaterial: {
                 WhiteMaterial *whiteMaterial = (WhiteMaterial*)(material);
                 shader->setUniformMat4("viewMat", camera->getViewMatrix());
@@ -172,8 +194,13 @@ Shader * Renderer::pickShader(MaterialType type) {
             break;
         case MaterialType::ScreenPlaneMaterial:
             resultShader = mScreenPlaneShader;
+            break;
         case MaterialType::CubeMaterial:
             resultShader = mCubeShader;
+            break;
+        case MaterialType::PhongEnvMaterial:
+            resultShader = mPhongEnvShader;
+            break;
         default:
             break;
     }
