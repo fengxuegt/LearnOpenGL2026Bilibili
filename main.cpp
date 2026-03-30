@@ -97,7 +97,6 @@ void prepare() {
     boxMesh->mGeometry = box;
     auto *boxMaterial = new CubeMaterial();
     boxMaterial->mDiffuse = new Texture(paths, 0);
-    boxMaterial->mDepthWrite = false;
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
 

@@ -85,7 +85,7 @@ void Renderer::render(Scene *scene, Camera *camera, DirectionalLight *directiona
     }
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
+    // glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     renderObject(scene, camera, directionalLight, ambientLight);
 }
