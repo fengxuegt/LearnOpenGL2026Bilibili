@@ -4,12 +4,14 @@
 
 #ifndef MATERIAL_H
 #define MATERIAL_H
+#include <glad/glad.h>
 
 
 enum class MaterialType {
     PhongMaterial,
     WhiteMaterial,
-    ScreenPlaneMaterial
+    ScreenPlaneMaterial,
+    CubeMaterial
 };
 class Material {
 public:
@@ -20,6 +22,11 @@ public:
 
 public:
     MaterialType mType;
+
+    // depth test
+    bool mDepthTest{true};
+    GLenum mDepthFun{GL_LEQUAL};
+    bool mDepthWrite{true};
 
 };
 

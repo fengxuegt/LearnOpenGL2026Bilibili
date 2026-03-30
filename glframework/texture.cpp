@@ -105,6 +105,33 @@ Texture::Texture(unsigned int unit, unsigned char *dataIn, uint32_t widthIn, uin
 
 }
 
+// right left up down back front   + x   - x    +y    -y    +z   -z
+Texture::Texture(std::vector<std::string> &paths, int unit) {
+    mTextureTarget = GL_TEXTURE_CUBE_MAP;
+    mUnitID = unit;
+    glGenTextures(1, &mTextureID);
+    glActiveTexture(GL_TEXTURE0 + mUnitID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mTextureID);
+    stbi_set_flip_vertically_on_load(false);
+    int channels;
+    int width, height;
+    unsigned char* data = nullptr;
+    for (int i = 0; i < paths.size(); i++) {
+        data = stbi_load(paths[i].c_str(), &width, &height, &channels, STBI_rgb_alpha);
+        if (data) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        } else {
+            std::cout << "Texture failed to load at path: " << paths[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(mTextureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(mTextureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(mTextureTarget, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
 Texture::~Texture() {
     if (mTextureID != 0) {
         glDeleteTextures(1, &mTextureID);
@@ -113,7 +140,7 @@ Texture::~Texture() {
 
 void Texture::Bind() {
     glActiveTexture(GL_TEXTURE0 + mUnitID);
-    glBindTexture(GL_TEXTURE_2D, mTextureID);
+    glBindTexture(mTextureTarget, mTextureID);
 }
 
 int Texture::getWidth() {

@@ -6,6 +6,7 @@
 
 #include <glframework/material/phongmaterial.h>
 
+#include "glframework/material/cubematerial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
@@ -13,6 +14,7 @@ Renderer::Renderer() {
     mPhongShader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
     mWhiteShader = new Shader("assets/shaders/white.vert", "assets/shaders/white.frag");
     mScreenPlaneShader = new Shader("assets/shaders/screenplane.vert", "assets/shaders/screenplane.frag");
+    mCubeShader = new Shader("assets/shaders/cube.vert", "assets/shaders/cube.frag");
 }
 
 Renderer::~Renderer() {
@@ -83,6 +85,7 @@ void Renderer::render(Scene *scene, Camera *camera, DirectionalLight *directiona
     }
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    // glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     renderObject(scene, camera, directionalLight, ambientLight);
 }
@@ -92,6 +95,10 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
         Mesh *mesh = (Mesh*)object;
         auto geometry = mesh->mGeometry;
         auto material = mesh->mMaterial;
+
+        setDepthState(material);
+
+
         Shader *shader = pickShader(material->getType());
         shader->useProgram();
 
@@ -129,6 +136,16 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 shader->setUniformInt("diffuse", 0);
             }
                 break;
+            case MaterialType::CubeMaterial: {
+                CubeMaterial *cubeMaterial = (CubeMaterial*)(material);
+                mesh->setPosition(camera->mPosition);
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformInt("diffuse", 0);
+                cubeMaterial->mDiffuse->Bind();
+            }
+                break;
             default:
                 break;
         }
@@ -155,9 +172,26 @@ Shader * Renderer::pickShader(MaterialType type) {
             break;
         case MaterialType::ScreenPlaneMaterial:
             resultShader = mScreenPlaneShader;
+        case MaterialType::CubeMaterial:
+            resultShader = mCubeShader;
         default:
             break;
     }
     return resultShader;
+}
+
+void Renderer::setDepthState(Material *material) {
+    if (material->mDepthTest) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(material->mDepthFun);
+    } else {
+        glDisable(GL_DEPTH_TEST);
+    }
+    if (material->mDepthWrite) {
+        glDepthMask(GL_TRUE);
+    } else {
+        glDepthMask(GL_FALSE);
+    }
+
 }
 

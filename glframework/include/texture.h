@@ -31,6 +31,7 @@ public:
 		unsigned char* dataIn,
 		uint32_t widthIn,
 		uint32_t heightIn);
+	Texture(std::vector<std::string> &paths, int unit);
     ~Texture();
 
 public:
@@ -43,6 +44,7 @@ private:
     GLuint mUnitID;
 	int mWidth{0};
 	int mHeight{0};
+	int mTextureTarget{GL_TEXTURE_2D};
 	static std::map<std::string, Texture*> mTextureCache;
 	
 

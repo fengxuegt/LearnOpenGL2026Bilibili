@@ -21,6 +21,7 @@
 #include "texture.h"
 #include "trackballcameracontrol.h"
 #include "glframework/framebuffer.h"
+#include "glframework/material/cubematerial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
@@ -81,29 +82,35 @@ void prepare() {
     renderer = new Renderer();
     offScene = new Scene();
 
+    std::vector<std::string> paths = {
+        "assets/textures/skybox/right.jpg",
+        "assets/textures/skybox/left.jpg",
+        "assets/textures/skybox/top.jpg",
+        "assets/textures/skybox/bottom.jpg",
+        "assets/textures/skybox/back.jpg",
+        "assets/textures/skybox/front.jpg",
+    };
+
     // first mesh
     Mesh *boxMesh = new Mesh();
-    box = Geometry::createBox(2);
+    box = Geometry::createBox(1);
     boxMesh->mGeometry = box;
-    auto *boxMaterial = new PhongMaterial();
-    boxMaterial->mDiffuse =  new Texture("assets/textures/asuna.png", 0);
-    boxMaterial->mShininess = 64.0f;
+    auto *boxMaterial = new CubeMaterial();
+    boxMaterial->mDiffuse = new Texture(paths, 0);
+    boxMaterial->mDepthWrite = false;
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
+
+
+    Mesh *sphereMesh = new Mesh();
+    sphere = Geometry::createSphere(1);
+    sphereMesh->mGeometry = sphere;
+    auto *sphereMaterial = new PhongMaterial();
+    sphereMaterial->mDiffuse = new Texture("assets/textures/earth.png", 0);
+    sphereMesh->mMaterial = sphereMaterial;
+    offScene->addChild(sphereMesh);
     offScene->addChild(boxMesh);
 
-    onScene = new Scene();
-    fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
-
-    Mesh *mesh = new Mesh();
-    Geometry * screenPlane = Geometry::createScreenPlane(LWAPP->getWidth(), LWAPP->getHeight());
-    ScreenPlaneMaterial *screenPlaneMaterial = new ScreenPlaneMaterial();
-    screenPlaneMaterial->mDiffuse = fbo->mColorAttachment;
-    // screenPlaneMaterial->mDiffuse = new Texture("assets/textures/asuna.png", 0);
-    mesh->mGeometry = screenPlane;
-    mesh->mMaterial = screenPlaneMaterial;
-
-    onScene->addChild(mesh);
     // light init
     dirLight = new DirectionalLight();
     dirLight->mLightColor = lightColor;
@@ -157,9 +164,9 @@ int main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     while (LWAPP->update()) {
         cameraControl->update();
-        renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
+        renderer->render(offScene, camera, dirLight, ambLight, 0);
         renderIMGUI();
-        renderer->render(onScene, camera, dirLight, ambLight, 0);
+        // renderer->render(onScene, camera, dirLight, ambLight, 0);
     }
 
     LWAPP->destroy();

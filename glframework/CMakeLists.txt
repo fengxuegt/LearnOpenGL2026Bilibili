@@ -16,6 +16,8 @@ add_library(glframework shader.cpp
         material/screenplanematerial.cpp
         material/screenplanematerial.h
         framebuffer.cpp
-        framebuffer.h)
+        framebuffer.h
+        material/cubematerial.cpp
+        material/cubematerial.h)
 target_include_directories(glframework PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(glframework glad glfw lwapp glm camera)

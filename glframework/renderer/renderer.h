@@ -24,12 +24,14 @@ public:
     void renderObject(Object *object, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight);
 private:
     Shader* pickShader(MaterialType type);
+    void setDepthState(Material *material);
 
 private:
     std::vector<Mesh*> mMeshes;
     Shader *mPhongShader{nullptr};
     Shader *mWhiteShader{nullptr};
     Shader *mScreenPlaneShader{nullptr};
+    Shader *mCubeShader{nullptr};
 };
 
 
