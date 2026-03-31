@@ -12,7 +12,9 @@ enum class MaterialType {
     WhiteMaterial,
     ScreenPlaneMaterial,
     CubeMaterial,
-    PhongEnvMaterial
+    PhongEnvMaterial,
+    PhongInstanceMaterial,
+    CubeBallMaterial
 };
 class Material {
 public:

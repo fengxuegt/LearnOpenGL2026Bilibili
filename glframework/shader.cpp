@@ -40,6 +40,16 @@ bool Shader::setUniformMat4(const std::string &name, const glm::mat4 &matrix) {
     return true;
 }
 
+bool Shader::setUniformMat4Array(const std::string &name, const glm::mat4 *arrays, int count) {
+    GLuint location = glGetUniformLocation(mProgram, name.c_str());
+    glUniformMatrix4fv(location, count, GL_FALSE, glm::value_ptr(*arrays));
+    return true;
+}
+
+bool Shader::setUniformMat4Arrays(const std::string &name, const glm::mat4 matrix[]) {
+    return true;
+}
+
 void Shader::useProgram() {
     glUseProgram(mProgram);
 }

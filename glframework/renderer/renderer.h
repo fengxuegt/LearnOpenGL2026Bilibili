@@ -33,6 +33,8 @@ private:
     Shader *mScreenPlaneShader{nullptr};
     Shader *mCubeShader{nullptr};
     Shader *mPhongEnvShader{nullptr};
+    Shader *mPhongInstanceShader{nullptr};
+    Shader *mCubeBallShader{nullptr};
 };
 
 

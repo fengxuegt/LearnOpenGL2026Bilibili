@@ -10,7 +10,8 @@
 enum class ObjectType {
     Mesh,
     Object,
-    Scene
+    Scene,
+    InstanceMesh
 };
 
 class Object {

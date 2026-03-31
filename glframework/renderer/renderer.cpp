@@ -6,8 +6,11 @@
 
 #include <glframework/material/phongmaterial.h>
 
+#include "glframework/instancedmesh.h"
+#include "glframework/material/cubeballmaterial.h"
 #include "glframework/material/cubematerial.h"
 #include "glframework/material/phongenvmaterial.h"
+#include "glframework/material/phonginstancematerial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
@@ -17,6 +20,8 @@ Renderer::Renderer() {
     mScreenPlaneShader = new Shader("assets/shaders/screenplane.vert", "assets/shaders/screenplane.frag");
     mCubeShader = new Shader("assets/shaders/cube.vert", "assets/shaders/cube.frag");
     mPhongEnvShader = new Shader("assets/shaders/phongenv.vert", "assets/shaders/phongenv.frag");
+    mPhongInstanceShader = new Shader("assets/shaders/phonginstance.vert", "assets/shaders/phonginstance.frag");
+    mCubeBallShader = new Shader("assets/shaders/cubeball.vert", "assets/shaders/cubeball.frag");
 }
 
 Renderer::~Renderer() {
@@ -93,7 +98,7 @@ void Renderer::render(Scene *scene, Camera *camera, DirectionalLight *directiona
 }
 
 void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight) {
-    if (object->getType() == ObjectType::Mesh) {
+    if (object->getType() == ObjectType::Mesh || object->getType() == ObjectType::InstanceMesh) {
         Mesh *mesh = (Mesh*)object;
         auto geometry = mesh->mGeometry;
         auto material = mesh->mMaterial;
@@ -140,8 +145,33 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 shader->setUniformFloat("mShiness", phongMaterial->mShininess);
 
                 phongMaterial->mDiffuse->Bind();
+                phongMaterial->mCubeMap->Bind();
                 shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
                 shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
+            }
+            break;
+            case MaterialType::PhongInstanceMaterial: {
+                PhongInstanceMaterial *phongMaterial = (PhongInstanceMaterial*)(material);
+                // 更新Shader的Uniform变量
+                shader->setUniformInt("samplerAsuna", 0);
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+
+                shader->setUniformVec3Float("lightDirection", directionalLight->mLightDirection);
+                shader->setUniformVec3Float("lightColor", directionalLight->mLightColor);
+                shader->setUniformVec3Float("ambientColor", ambientLight->mLightColor);
+                shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+                shader->setUniformFloat("specularIntensity", directionalLight->mLightIntensity);
+                shader->setUniformFloat("mShiness", phongMaterial->mShininess);
+
+                phongMaterial->mDiffuse->Bind();
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
+
+                // transform matrix array
+                InstancedMesh* im = (InstancedMesh*)mesh;
+                shader->setUniformMat4Array("matrices", im->mModelMatrices, im->mInstanceCount);
+
             }
             break;
             case MaterialType::WhiteMaterial: {
@@ -168,11 +198,28 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 cubeMaterial->mDiffuse->Bind();
             }
                 break;
+            case MaterialType::CubeBallMaterial: {
+                CubeBallMaterial *cubeMaterial = (CubeBallMaterial*)(material);
+                mesh->setPosition(camera->mPosition);
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformInt("diffuse", 0);
+                cubeMaterial->mDiffuse->Bind();
+            }
+            break;
             default:
                 break;
         }
+
         glBindVertexArray(geometry->getVao());
-        glDrawElements(GL_TRIANGLES,  geometry->getIndicesCount(), GL_UNSIGNED_INT, NULL);
+        if (object->getType() == ObjectType::InstanceMesh) {
+            InstancedMesh *instancedMesh = (InstancedMesh*)object;
+            glDrawElementsInstanced(GL_TRIANGLES, geometry->getIndicesCount(), GL_UNSIGNED_INT, 0, instancedMesh->mInstanceCount);
+        } else {
+            glDrawElements(GL_TRIANGLES,  geometry->getIndicesCount(), GL_UNSIGNED_INT, NULL);
+        }
+
 
         shader->unuseProgram();
     }
@@ -201,6 +248,12 @@ Shader * Renderer::pickShader(MaterialType type) {
         case MaterialType::PhongEnvMaterial:
             resultShader = mPhongEnvShader;
             break;
+        case MaterialType::PhongInstanceMaterial:
+            resultShader = mPhongInstanceShader;
+        break;
+        case MaterialType::CubeBallMaterial:
+            resultShader = mCubeBallShader;
+        break;
         default:
             break;
     }

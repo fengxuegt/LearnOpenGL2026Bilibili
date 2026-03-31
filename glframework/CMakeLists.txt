@@ -20,6 +20,12 @@ add_library(glframework shader.cpp
         material/cubematerial.cpp
         material/cubematerial.h
         material/phongenvmaterial.cpp
-        material/phongenvmaterial.h)
+        material/phongenvmaterial.h
+        Instancedmesh.cpp
+        Instancedmesh.h
+        material/phonginstancematerial.cpp
+        material/phonginstancematerial.h
+        material/cubeballmaterial.cpp
+        material/cubeballmaterial.h)
 target_include_directories(glframework PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(glframework glad glfw lwapp glm camera)

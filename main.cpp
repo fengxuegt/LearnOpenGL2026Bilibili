@@ -21,8 +21,11 @@
 #include "texture.h"
 #include "trackballcameracontrol.h"
 #include "glframework/framebuffer.h"
+#include "glframework/instancedmesh.h"
+#include "glframework/material/cubeballmaterial.h"
 #include "glframework/material/cubematerial.h"
 #include "glframework/material/phongenvmaterial.h"
+#include "glframework/material/phonginstancematerial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 
@@ -92,23 +95,31 @@ void prepare() {
         "assets/textures/skybox/front.jpg",
     };
 
-    // first mesh
+    // cube map
     Mesh *boxMesh = new Mesh();
     box = Geometry::createBox(1);
     boxMesh->mGeometry = box;
-    auto *boxMaterial = new CubeMaterial();
-    boxMaterial->mDiffuse = new Texture(paths, 0);
+    // auto *boxMaterial = new CubeMaterial();
+    auto *boxMaterial = new CubeBallMaterial();
+    boxMaterial->mDiffuse = new Texture("assets/textures/bk.jpg", 0);
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
 
+    // object
 
-    Mesh *sphereMesh = new Mesh();
     sphere = Geometry::createSphere(1);
-    sphereMesh->mGeometry = sphere;
-    auto *sphereMaterial = new PhongEnvMaterial();
+
+    auto *sphereMaterial = new PhongInstanceMaterial();
     sphereMaterial->mDiffuse = new Texture("assets/textures/earth.png", 0);
-    sphereMaterial->mCubeMap = new Texture(paths, 1);
-    sphereMesh->mMaterial = sphereMaterial;
+
+    InstancedMesh *sphereMesh = new InstancedMesh(sphere, sphereMaterial, 2);
+    glm::mat4 transMat[] = {
+        glm::mat4(1.0f),
+        glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 3.0f)),
+    };
+    sphereMesh->mModelMatrices[0] = transMat[0];
+    sphereMesh->mModelMatrices[1] = transMat[1];
+
     offScene->addChild(sphereMesh);
     offScene->addChild(boxMesh);
 
