@@ -9,6 +9,9 @@
 
 class InstancedMesh : public Mesh{
 public:
+    void updateModelMatrices();
+
+public:
     InstancedMesh();
     InstancedMesh(Geometry* geometry, Material* material, unsigned int instanceCount);
     ~InstancedMesh();
@@ -16,6 +19,7 @@ public:
 public:
     glm::mat4 *mModelMatrices{nullptr};
     unsigned int mInstanceCount{0};
+    GLuint mModelMatrixVBO{0};
 };
 
 

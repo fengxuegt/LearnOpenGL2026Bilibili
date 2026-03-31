@@ -168,10 +168,6 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
                 shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
 
-                // transform matrix array
-                InstancedMesh* im = (InstancedMesh*)mesh;
-                shader->setUniformMat4Array("matrices", im->mModelMatrices, im->mInstanceCount);
-
             }
             break;
             case MaterialType::WhiteMaterial: {

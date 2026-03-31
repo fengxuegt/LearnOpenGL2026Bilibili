@@ -119,6 +119,7 @@ void prepare() {
     };
     sphereMesh->mModelMatrices[0] = transMat[0];
     sphereMesh->mModelMatrices[1] = transMat[1];
+    sphereMesh->updateModelMatrices();
 
     offScene->addChild(sphereMesh);
     offScene->addChild(boxMesh);

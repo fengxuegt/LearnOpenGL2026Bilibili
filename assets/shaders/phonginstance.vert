@@ -2,6 +2,7 @@
 layout(location = 0) in vec3 aPos;
 layout(location = 2) in vec2 aUV;
 layout(location = 1) in vec3 aNormal;
+layout(location = 3) in mat4 aInstanceMatrix;
 out vec2 fUV;
 out vec3 fNormal;
 out vec3 worldPos;
@@ -10,9 +11,9 @@ uniform mat4 transMat;
 uniform mat4 viewMat;
 uniform mat4 projectionMat;
 uniform mat4 normalMat;
-uniform mat4 matrices[100];
+
 void main() {
-    gl_Position = projectionMat * viewMat * transMat * matrices[gl_InstanceID] * vec4(aPos, 1.0f);
+    gl_Position = projectionMat * viewMat * transMat * aInstanceMatrix * vec4(aPos, 1.0f);
     fUV = aUV;
     fNormal = mat3(normalMat) * aNormal;
     worldPos = (transMat * vec4(aPos, 1.0f)).xyz;
