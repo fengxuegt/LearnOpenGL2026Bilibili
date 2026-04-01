@@ -105,24 +105,14 @@ void prepare() {
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
 
-    // object
+    // model
+    auto model = AssimpLoader::load("assets/fbx/bag/backpack.obj");
+    // auto model = AssimpLoader::load("assets/fbx/Fist Fight B.fbx");
+    model->setPosition(glm::vec3(0, 0, 0));
+    // model->setScale(glm::vec3(0.05f));
 
-    sphere = Geometry::createSphere(1);
-
-    auto *sphereMaterial = new PhongInstanceMaterial();
-    sphereMaterial->mDiffuse = new Texture("assets/textures/earth.png", 0);
-
-    InstancedMesh *sphereMesh = new InstancedMesh(sphere, sphereMaterial, 2);
-    glm::mat4 transMat[] = {
-        glm::mat4(1.0f),
-        glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 3.0f)),
-    };
-    sphereMesh->mModelMatrices[0] = transMat[0];
-    sphereMesh->mModelMatrices[1] = transMat[1];
-    sphereMesh->updateModelMatrices();
-
-    offScene->addChild(sphereMesh);
     offScene->addChild(boxMesh);
+    offScene->addChild(model);
 
     // light init
     dirLight = new DirectionalLight();

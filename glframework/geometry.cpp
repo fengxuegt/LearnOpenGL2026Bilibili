@@ -27,7 +27,7 @@ Geometry::Geometry(const std::vector<float> &positions, const std::vector<float>
 	//3 EBO创建
 	glGenBuffers(1, &mEbo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEbo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(float), indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
 	//4 VAO创建
 	glGenVertexArrays(1, &mVao);

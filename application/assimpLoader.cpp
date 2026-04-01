@@ -13,6 +13,8 @@ AssimpLoader::~AssimpLoader() {
 }
 
 Object* AssimpLoader::load(const std::string &path) {
+	auto lastIndex = path.find_last_of("/\\");;
+	auto rootPath = path.substr(0, lastIndex);
     Object *rootNode = new Object();
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenNormals);
@@ -20,7 +22,7 @@ Object* AssimpLoader::load(const std::string &path) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
         return nullptr;
     }
-    processNode(scene->mRootNode, rootNode, scene, path);
+    processNode(scene->mRootNode, rootNode, scene, rootPath);
     return rootNode;
 }
 
