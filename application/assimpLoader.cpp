@@ -89,6 +89,7 @@ Mesh * AssimpLoader::processMesh(aiMesh *aimesh, const aiScene *scene, const std
 
 	auto geometry = new Geometry(positions, normals, uvs, indices);
 	auto material = new PhongMaterial();
+	material->mShininess = 64;
 
 	if (aimesh->mMaterialIndex >= 0) {
 		Texture* texture = nullptr;

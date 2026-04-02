@@ -99,9 +99,10 @@ void prepare() {
     Mesh *boxMesh = new Mesh();
     box = Geometry::createBox(1);
     boxMesh->mGeometry = box;
-    // auto *boxMaterial = new CubeMaterial();
-    auto *boxMaterial = new CubeBallMaterial();
-    boxMaterial->mDiffuse = new Texture("assets/textures/bk.jpg", 0);
+    auto *boxMaterial = new CubeMaterial();
+    // auto *boxMaterial = new CubeBallMaterial();
+    // boxMaterial->mDiffuse = new Texture("assets/textures/bk.jpg", 0);
+    boxMaterial->mDiffuse = new Texture(paths, 0);
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
 
