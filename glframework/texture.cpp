@@ -15,7 +15,7 @@ Texture * Texture::createTexture(const std::string &path, unsigned int unit) {
     if (it != mTextureCache.end()) {
         return it->second;
     }
-    auto texture = new Texture(path, unit);
+    auto texture = new Texture(path, unit, GL_SRGB_ALPHA);
     mTextureCache[path] = texture;
     return texture;
 }
@@ -26,7 +26,7 @@ Texture * Texture::createTextureFromMemory(const std::string &path, unsigned int
     if (it != mTextureCache.end()) {
         return it->second;
     }
-    auto texture = new Texture(unit, dataIn, widthIn, heightIn);
+    auto texture = new Texture(unit, dataIn, widthIn, heightIn, GL_SRGB_ALPHA);
     mTextureCache[path] = texture;
     return texture;
 }
@@ -62,7 +62,7 @@ Texture * Texture::createDepthAttachment(int width, int height, int unitID) {
     return depthAttachment;
 }
 
-Texture::Texture(const std::string &path, int unitID) {
+Texture::Texture(const std::string &path, int unitID, unsigned int internalFormat) {
     mUnitID = unitID;
     int width, height;
     int channels;
@@ -72,7 +72,7 @@ Texture::Texture(const std::string &path, int unitID) {
     glGenTextures(1, &mTextureID);
     glBindTexture(GL_TEXTURE_2D, mTextureID);
     glActiveTexture(GL_TEXTURE0 + mUnitID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // 设置过滤形式
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // 设置过滤形式
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -81,7 +81,7 @@ Texture::Texture(const std::string &path, int unitID) {
     glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-Texture::Texture(unsigned int unit, unsigned char *dataIn, uint32_t widthIn, uint32_t heightIn) {
+Texture::Texture(unsigned int unit, unsigned char *dataIn, uint32_t widthIn, uint32_t heightIn, unsigned int internalFormat) {
     mUnitID = unit;
     int channels;
     stbi_set_flip_vertically_on_load(true);
@@ -95,7 +95,7 @@ Texture::Texture(unsigned int unit, unsigned char *dataIn, uint32_t widthIn, uin
     glGenTextures(1, &mTextureID);
     glActiveTexture(GL_TEXTURE0 + mUnitID);
     glBindTexture(GL_TEXTURE_2D, mTextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -106,7 +106,7 @@ Texture::Texture(unsigned int unit, unsigned char *dataIn, uint32_t widthIn, uin
 }
 
 // right left up down back front   + x   - x    +y    -y    +z   -z
-Texture::Texture(std::vector<std::string> &paths, int unit) {
+Texture::Texture(std::vector<std::string> &paths, int unit, unsigned int internalFormat) {
     mTextureTarget = GL_TEXTURE_CUBE_MAP;
     mUnitID = unit;
     glGenTextures(1, &mTextureID);
@@ -119,7 +119,7 @@ Texture::Texture(std::vector<std::string> &paths, int unit) {
     for (int i = 0; i < paths.size(); i++) {
         data = stbi_load(paths[i].c_str(), &width, &height, &channels, STBI_rgb_alpha);
         if (data) {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         } else {
             std::cout << "Texture failed to load at path: " << paths[i] << std::endl;

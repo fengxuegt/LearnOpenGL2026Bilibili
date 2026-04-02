@@ -26,12 +26,13 @@ public:
 	int getTextureID() const { return mTextureID; }
 
 public:
-    Texture(const std::string &path, int unitID);
+    Texture(const std::string &path, int unitID, unsigned int internalFormat = GL_RGBA);
 	Texture(unsigned int unit,
 		unsigned char* dataIn,
 		uint32_t widthIn,
-		uint32_t heightIn);
-	Texture(std::vector<std::string> &paths, int unit);
+		uint32_t heightIn
+		, unsigned int internalFormat = GL_RGBA);
+	Texture(std::vector<std::string> &paths, int unit, unsigned int internalFormat = GL_RGBA);
     ~Texture();
 
 public:
