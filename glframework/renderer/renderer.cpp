@@ -13,6 +13,7 @@
 #include "glframework/material/phonginstancematerial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
+#include "glframework/material/advanced/phongnormalmapmaterial.h"
 
 Renderer::Renderer() {
     mPhongShader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
@@ -22,6 +23,8 @@ Renderer::Renderer() {
     mPhongEnvShader = new Shader("assets/shaders/phongenv.vert", "assets/shaders/phongenv.frag");
     mPhongInstanceShader = new Shader("assets/shaders/phonginstance.vert", "assets/shaders/phonginstance.frag");
     mCubeBallShader = new Shader("assets/shaders/cubeball.vert", "assets/shaders/cubeball.frag");
+    mPhongNormalMapShader = new Shader("assets/shaders/advanced/phongnormalmap.vert", "assets/shaders/advanced/phongnormalmap.frag");
+    mPhongParallaxMapShader = new Shader("assets/shaders/advanced/phongparallaxmap.vert", "assets/shaders/advanced/phongparallaxmap.frag");
 }
 
 Renderer::~Renderer() {
@@ -129,6 +132,48 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                     shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
                 }
                 break;
+            case MaterialType::PhongNormalMapMaterial: {
+                PhongNormalMapMaterial *phongMaterial = (PhongNormalMapMaterial*)(material);
+                // 更新Shader的Uniform变量
+                shader->setUniformInt("samplerAsuna", 0);
+                shader->setUniformInt("normalMapSampler", 1);
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+
+                shader->setUniformVec3Float("lightDirection", directionalLight->mLightDirection);
+                shader->setUniformVec3Float("lightColor", directionalLight->mLightColor);
+                shader->setUniformVec3Float("ambientColor", ambientLight->mLightColor);
+                shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+                shader->setUniformFloat("specularIntensity", directionalLight->mLightIntensity);
+                shader->setUniformFloat("mShiness", phongMaterial->mShininess);
+
+                phongMaterial->mDiffuse->Bind();
+                phongMaterial->mNormalMap->Bind();
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
+            }
+            break;
+            case MaterialType::PhongParallaxMapMaterial: {
+                PhongNormalMapMaterial *phongMaterial = (PhongNormalMapMaterial*)(material);
+                // 更新Shader的Uniform变量
+                shader->setUniformInt("samplerAsuna", 0);
+                shader->setUniformInt("normalMapSampler", 1);
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+
+                shader->setUniformVec3Float("lightDirection", directionalLight->mLightDirection);
+                shader->setUniformVec3Float("lightColor", directionalLight->mLightColor);
+                shader->setUniformVec3Float("ambientColor", ambientLight->mLightColor);
+                shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+                shader->setUniformFloat("specularIntensity", directionalLight->mLightIntensity);
+                shader->setUniformFloat("mShiness", phongMaterial->mShininess);
+
+                phongMaterial->mDiffuse->Bind();
+                phongMaterial->mNormalMap->Bind();
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
+            }
+            break;
             case MaterialType::PhongEnvMaterial: {
                 PhongEnvMaterial *phongMaterial = (PhongEnvMaterial*)(material);
                 // 更新Shader的Uniform变量
@@ -249,6 +294,12 @@ Shader * Renderer::pickShader(MaterialType type) {
         break;
         case MaterialType::CubeBallMaterial:
             resultShader = mCubeBallShader;
+        break;
+        case MaterialType::PhongNormalMapMaterial:
+            resultShader = mPhongNormalMapShader;
+        break;
+        case MaterialType::PhongParallaxMapMaterial:
+            resultShader = mPhongParallaxMapShader;
         break;
         default:
             break;

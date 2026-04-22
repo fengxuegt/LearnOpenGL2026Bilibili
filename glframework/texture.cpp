@@ -68,10 +68,13 @@ Texture::Texture(const std::string &path, int unitID, unsigned int internalForma
     int channels;
     stbi_set_flip_vertically_on_load(true);
     auto image_data = stbi_load(path.c_str(), &mWidth, &mHeight, &channels, STBI_rgb_alpha); // unsigned char * data
+    if (!image_data) {
+        std::cerr << "Failed to load image: " << path << std::endl;
+    }
 
     glGenTextures(1, &mTextureID);
-    glBindTexture(GL_TEXTURE_2D, mTextureID);
     glActiveTexture(GL_TEXTURE0 + mUnitID);
+    glBindTexture(GL_TEXTURE_2D, mTextureID);
     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // 设置过滤形式
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // 设置过滤形式

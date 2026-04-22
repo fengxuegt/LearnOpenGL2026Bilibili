@@ -14,7 +14,9 @@ enum class MaterialType {
     CubeMaterial,
     PhongEnvMaterial,
     PhongInstanceMaterial,
-    CubeBallMaterial
+    CubeBallMaterial,
+    PhongNormalMapMaterial,
+    PhongParallaxMapMaterial,
 };
 class Material {
 public:

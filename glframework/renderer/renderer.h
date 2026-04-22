@@ -35,6 +35,8 @@ private:
     Shader *mPhongEnvShader{nullptr};
     Shader *mPhongInstanceShader{nullptr};
     Shader *mCubeBallShader{nullptr};
+    Shader *mPhongNormalMapShader{nullptr};
+    Shader *mPhongParallaxMapShader{nullptr};
 };
 
 

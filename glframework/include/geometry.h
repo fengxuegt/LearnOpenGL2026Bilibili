@@ -22,7 +22,8 @@ public:
     static Geometry *createBox(float size);
     static Geometry *createSphere(float size);
     static Geometry *createPlane(float width, float height);
-    static Geometry *createScreenPlane(float width, float height);
+    static Geometry *createNormapPlane();
+    static Geometry *createScreenPlane();
 
 
 public:
@@ -30,6 +31,7 @@ public:
     GLuint mPosVbo = 0;
     GLuint mNormalVbo = 0;
     GLuint mUvVbo = 0;
+    GLuint mTangentVbo = 0;
     GLuint mEbo = 0;
     GLuint mIndicesCount = 0;
 

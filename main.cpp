@@ -28,6 +28,7 @@
 #include "glframework/material/phonginstancematerial.h"
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
+#include "glframework/material/advanced/phongnormalmapmaterial.h"
 
 Renderer *renderer;
 std::vector<Mesh*> meshes;
@@ -83,8 +84,25 @@ void prepareCamera() {
 }
 
 void prepare() {
+    // glEnable(GL_FRAMEBUFFER_SRGB);
     renderer = new Renderer();
     offScene = new Scene();
+    onScene = new Scene();
+    fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
+
+    // pass 01
+    auto boxGeo = Geometry::createBox(5.0f);
+    auto boxMat = new PhongMaterial();
+    boxMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
+    auto boxMesh = new Mesh(boxGeo, boxMat);
+    offScene->addChild(boxMesh);
+
+    // pass 02
+    Geometry * geometry = Geometry::createScreenPlane();
+    auto * material = new ScreenPlaneMaterial();
+    material->mDiffuse = fbo->mColorAttachment;
+    Mesh *plane = new Mesh(geometry, material);
+    onScene->addChild(plane);
 
     std::vector<std::string> paths = {
         "assets/textures/skybox/right.jpg",
@@ -95,6 +113,8 @@ void prepare() {
         "assets/textures/skybox/front.jpg",
     };
 
+
+    /*
     // cube map
     Mesh *boxMesh = new Mesh();
     box = Geometry::createBox(1);
@@ -106,14 +126,32 @@ void prepare() {
     boxMesh->mMaterial = boxMaterial;
     boxMesh->setPosition(glm::vec3(0.0, 0, 0));
 
-    // model
-    auto model = AssimpLoader::load("assets/fbx/bag/backpack.obj");
-    // auto model = AssimpLoader::load("assets/fbx/Fist Fight B.fbx");
-    model->setPosition(glm::vec3(0, 0, 0));
-    // model->setScale(glm::vec3(0.05f));
 
     offScene->addChild(boxMesh);
-    offScene->addChild(model);
+
+
+    Geometry *normalMapPlane = Geometry::createPlane(5, 3);
+    auto * phongMat = new PhongMaterial();
+    phongMat->mShininess = 64;
+    phongMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0);
+
+    auto *normalMapMat = new PhongNormalMapMaterial();
+    normalMapMat->mShininess = 128;
+    normalMapMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0);
+    normalMapMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
+
+    auto *parallaxMapMat = new PhongNormalMapMaterial();
+    parallaxMapMat->mShininess = 128;
+    parallaxMapMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0);
+    parallaxMapMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
+
+    // Mesh *planeMesh = new Mesh(normalMapPlane, normalMapMat);
+    Mesh *planeMesh = new Mesh(normalMapPlane, parallaxMapMat);
+    // Mesh *planeMesh = new Mesh(normalMapPlane, phongMat);
+    planeMesh->setPosition(glm::vec3(0, 0, 2));
+    planeMesh->setAngleY(30);
+    offScene->addChild(planeMesh);
+    */
 
     // light init
     dirLight = new DirectionalLight();
@@ -165,12 +203,12 @@ int main() {
     initIMGUI();
     prepare();
     prepareCamera();
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     while (LWAPP->update()) {
         cameraControl->update();
-        renderer->render(offScene, camera, dirLight, ambLight, 0);
+        renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
         renderIMGUI();
-        // renderer->render(onScene, camera, dirLight, ambLight, 0);
+        renderer->render(onScene, camera, dirLight, ambLight, 0);
     }
 
     LWAPP->destroy();
