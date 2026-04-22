@@ -36,6 +36,5 @@ void main() {
 
     vec3 ambient = ambientColor * objectColor;
     vec3 result = diffuse + specular + ambient;
-    result = pow(result, vec3(1/2.2));
     FragColor = vec4(result, 1.0f);
 }

@@ -14,6 +14,11 @@ public:
         const std::vector<float> &normals,
         const std::vector<float> &uvs,
         const std::vector<unsigned int> &indices);
+    Geometry(const std::vector<float> &positions,
+    const std::vector<float> &normals,
+    const std::vector<float> &uvs,
+    const std::vector<unsigned int> &indices,
+    const std::vector<float>& tangents);
     ~Geometry();
 public:
     GLuint getVao();
@@ -28,6 +33,7 @@ public:
 
 public:
     GLuint mVao = 0;
+
     GLuint mPosVbo = 0;
     GLuint mNormalVbo = 0;
     GLuint mUvVbo = 0;

@@ -15,6 +15,7 @@
 #include <glframework/renderer/renderer.h>
 
 #include "cameracontrol.h"
+#include "gamecameracontrol.h"
 #include "geometry.h"
 #include "perspectivecamera.h"
 #include "stb_image.h"
@@ -35,7 +36,7 @@ std::vector<Mesh*> meshes;
 Scene *offScene = nullptr;
 Scene *onScene = nullptr;
 Camera *camera = nullptr;
-CameraControl *cameraControl = nullptr;
+GameCameraControl *cameraControl = nullptr;
 glm::mat4 transMat(1.0f);
 glm::mat4 transMatBox(1.0f);
 Geometry *plane = nullptr;
@@ -45,7 +46,7 @@ FrameBuffer *fbo = nullptr;
 
 DirectionalLight *dirLight = nullptr;
 AmbientLight *ambLight = nullptr;
-glm::vec3 lightDirection = glm::vec3(-1.0f, -1.0f, -1.0f); // 光的方向
+glm::vec3 lightDirection = glm::vec3(0.0f, 0.0f, -1.0f); // 光的方向
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 光的颜色
 glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
 
@@ -79,8 +80,11 @@ Texture *boxTexture = nullptr;
 
 void prepareCamera() {
     camera = new PerspectiveCamera(60.0f, (float)LWAPP->getWidth()/ (float)LWAPP->getHeight(), 0.1f, 1000.0f);
-    cameraControl = new TrackBallCameraControl();
+    // cameraControl = new TrackBallCameraControl();
+    cameraControl = new GameCameraControl();
     cameraControl->setCamera(camera);
+    cameraControl->setSensitivity(0.4f);
+    cameraControl->setSpeed(0.1f);
 }
 
 void prepare() {
@@ -91,10 +95,18 @@ void prepare() {
     fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
 
     // pass 01
-    auto boxGeo = Geometry::createBox(5.0f);
-    auto boxMat = new PhongMaterial();
-    boxMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
-    auto boxMesh = new Mesh(boxGeo, boxMat);
+    auto normalPlane = Geometry::createPlane(12, 8);
+    auto *normalMapMat = new PhongNormalMapMaterial();
+    normalMapMat->mShininess = 128;
+    // normalMapMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
+    // normalMapMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
+
+    normalMapMat->mDiffuse = new Texture("assets/textures/normal/brickwall.jpg", 0, GL_SRGB_ALPHA);
+    normalMapMat->mNormalMap = new Texture("assets/textures/normal/normal_map.png", 1);
+
+    auto boxMesh = new Mesh(normalPlane, normalMapMat);
+    // boxMesh->rotateX(-90.0f);
+    // boxMesh->setAngleX(-90.0f);
     offScene->addChild(boxMesh);
 
     // pass 02
@@ -113,45 +125,6 @@ void prepare() {
         "assets/textures/skybox/front.jpg",
     };
 
-
-    /*
-    // cube map
-    Mesh *boxMesh = new Mesh();
-    box = Geometry::createBox(1);
-    boxMesh->mGeometry = box;
-    auto *boxMaterial = new CubeMaterial();
-    // auto *boxMaterial = new CubeBallMaterial();
-    // boxMaterial->mDiffuse = new Texture("assets/textures/bk.jpg", 0);
-    boxMaterial->mDiffuse = new Texture(paths, 0);
-    boxMesh->mMaterial = boxMaterial;
-    boxMesh->setPosition(glm::vec3(0.0, 0, 0));
-
-
-    offScene->addChild(boxMesh);
-
-
-    Geometry *normalMapPlane = Geometry::createPlane(5, 3);
-    auto * phongMat = new PhongMaterial();
-    phongMat->mShininess = 64;
-    phongMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0);
-
-    auto *normalMapMat = new PhongNormalMapMaterial();
-    normalMapMat->mShininess = 128;
-    normalMapMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0);
-    normalMapMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
-
-    auto *parallaxMapMat = new PhongNormalMapMaterial();
-    parallaxMapMat->mShininess = 128;
-    parallaxMapMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0);
-    parallaxMapMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
-
-    // Mesh *planeMesh = new Mesh(normalMapPlane, normalMapMat);
-    Mesh *planeMesh = new Mesh(normalMapPlane, parallaxMapMat);
-    // Mesh *planeMesh = new Mesh(normalMapPlane, phongMat);
-    planeMesh->setPosition(glm::vec3(0, 0, 2));
-    planeMesh->setAngleY(30);
-    offScene->addChild(planeMesh);
-    */
 
     // light init
     dirLight = new DirectionalLight();
