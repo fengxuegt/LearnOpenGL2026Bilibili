@@ -24,7 +24,7 @@ bool Application::init(const char* title, int width, int height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    mWindow = glfwCreateWindow(640, 480, title, NULL, NULL);
+    mWindow = glfwCreateWindow(width, height, title, NULL, NULL);
     if (!mWindow) {
         return false;
     }

@@ -14,8 +14,8 @@ public:
 
 
 public:
-    int mWidth{1600};
-    int mHeight{1200};
+    int mWidth{2560};
+    int mHeight{1440};
     GLuint mFbo{0};
     Texture *mColorAttachment{nullptr};
     Texture *mDepthStencilAttachment{nullptr};

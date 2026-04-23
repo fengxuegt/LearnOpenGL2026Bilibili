@@ -27,7 +27,7 @@ public:
     static Geometry *createBox(float size);
     static Geometry *createSphere(float size);
     static Geometry *createPlane(float width, float height);
-    static Geometry *createNormapPlane();
+    static Geometry *createNormapPlane(); // 创建法线贴图的平面
     static Geometry *createScreenPlane();
 
 
@@ -41,6 +41,7 @@ public:
     GLuint mEbo = 0;
     GLuint mIndicesCount = 0;
 
+    GLuint mQuadVbo = 0; // 主要为了法线贴图平面
 
 };
 

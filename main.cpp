@@ -46,7 +46,7 @@ FrameBuffer *fbo = nullptr;
 
 DirectionalLight *dirLight = nullptr;
 AmbientLight *ambLight = nullptr;
-glm::vec3 lightDirection = glm::vec3(0.0f, 0.0f, -1.0f); // 光的方向
+glm::vec3 lightDirection = glm::vec3(0.0f, -1.0f, 0.0f); // 光的方向
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 光的颜色
 glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
 
@@ -94,28 +94,7 @@ void prepare() {
     onScene = new Scene();
     fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
 
-    // pass 01
-    auto normalPlane = Geometry::createPlane(12, 8);
-    auto *normalMapMat = new PhongNormalMapMaterial();
-    normalMapMat->mShininess = 128;
-    // normalMapMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
-    // normalMapMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
-
-    normalMapMat->mDiffuse = new Texture("assets/textures/normal/brickwall.jpg", 0, GL_SRGB_ALPHA);
-    normalMapMat->mNormalMap = new Texture("assets/textures/normal/normal_map.png", 1);
-
-    auto boxMesh = new Mesh(normalPlane, normalMapMat);
-    // boxMesh->rotateX(-90.0f);
-    // boxMesh->setAngleX(-90.0f);
-    offScene->addChild(boxMesh);
-
-    // pass 02
-    Geometry * geometry = Geometry::createScreenPlane();
-    auto * material = new ScreenPlaneMaterial();
-    material->mDiffuse = fbo->mColorAttachment;
-    Mesh *plane = new Mesh(geometry, material);
-    onScene->addChild(plane);
-
+    // cube map
     std::vector<std::string> paths = {
         "assets/textures/skybox/right.jpg",
         "assets/textures/skybox/left.jpg",
@@ -124,12 +103,37 @@ void prepare() {
         "assets/textures/skybox/back.jpg",
         "assets/textures/skybox/front.jpg",
     };
+    auto skyboxGeo = Geometry::createBox(1.0f);
+    auto skyboxMat = new CubeMaterial();
+    skyboxMat->mDiffuse = new Texture(paths, 0, GL_SRGB_ALPHA);
+    auto skyboxMesh = new Mesh(skyboxGeo, skyboxMat);
+    offScene->addChild(skyboxMesh);
+
+    // pass 01
+    auto planeGeo = Geometry::createNormapPlane();
+    auto planeMat = new PhongNormalMapMaterial();
+    planeMat->mDiffuse = new Texture("assets/textures/normal/brickwall.jpg", 0, GL_SRGB_ALPHA);
+    planeMat->mNormalMap = new Texture("assets/textures/normal/normal_map.png", 1);
+    planeMat->mShininess = 128;
+    auto mesh = new Mesh(planeGeo, planeMat);
+    mesh->rotateX(-90.0f);
+    offScene->addChild(mesh);
+
+    // pass 02
+    Geometry * geometry = Geometry::createScreenPlane();
+    auto * material = new ScreenPlaneMaterial();
+    material->mDiffuse = fbo->mColorAttachment;
+    Mesh *plane = new Mesh(geometry, material);
+    onScene->addChild(plane);
+
+
 
 
     // light init
     dirLight = new DirectionalLight();
     dirLight->mLightColor = lightColor;
-    dirLight->mLightDirection = lightDirection;
+    dirLight->mLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+    // dirLight->mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
     dirLight->mLightIntensity = 0.5f;
     ambLight = new AmbientLight();
     ambLight->mLightColor = lightColor;
@@ -164,7 +168,7 @@ void renderIMGUI() {
 }
 
 int main() {
-    if (!LWAPP->init("OpenGL basic", 800, 600)) {
+    if (!LWAPP->init("OpenGL basic", 2560, 1440)) {
         return -1;
     }
     LWAPP->setFrameBufferSizeCallback(frameSizeCallback);
@@ -177,6 +181,7 @@ int main() {
     prepare();
     prepareCamera();
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glViewport(0, 0, 2560, 1440);
     while (LWAPP->update()) {
         cameraControl->update();
         renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);

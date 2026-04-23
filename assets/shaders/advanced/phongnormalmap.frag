@@ -2,6 +2,7 @@
 in vec2 fUV;
 in vec3 fNormal;
 in vec3 worldPos;
+in mat3 tbn;
 out vec4 FragColor;
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -15,7 +16,7 @@ void main() {
 //    vec3 normalN = normalize(fNormal);
     vec3 normalN = texture(normalMapSampler, fUV).rgb;
     normalN = normalN * 2.0 - vec3(1.0);
-    normalN = normalize(normalN);
+    normalN = normalize(tbn * normalN);
     vec3 objectColor = texture(samplerAsuna, fUV).xyz;
     vec3 diffuse = lightColor * objectColor * clamp(dot(normalize(normalN), -normalize(lightDirection)), 0, 1);
     vec3 lightDirectionN = normalize(lightDirection);

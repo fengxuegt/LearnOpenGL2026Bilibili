@@ -5,6 +5,8 @@
 #include "framebuffer.h"
 
 FrameBuffer::FrameBuffer(int width, int height) {
+    mWidth = width;
+    mHeight = height;
     glGenFramebuffers(1, &mFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, mFbo);
     mColorAttachment = Texture::createColorAttachment(mWidth, mHeight, 0);

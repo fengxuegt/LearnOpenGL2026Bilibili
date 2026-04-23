@@ -312,6 +312,87 @@ Geometry *Geometry::createPlane(float width, float height) {
     return geometry;
 }
 
+Geometry * Geometry::createNormapPlane() {
+	Geometry *geometry = new Geometry();
+	// positions
+glm::vec3 pos1(-1.0f,  1.0f, 0.0f);
+glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
+glm::vec3 pos3( 1.0f, -1.0f, 0.0f);
+glm::vec3 pos4( 1.0f,  1.0f, 0.0f);
+// texture coordinates
+glm::vec2 uv1(0.0f, 1.0f);
+glm::vec2 uv2(0.0f, 0.0f);
+glm::vec2 uv3(1.0f, 0.0f);
+glm::vec2 uv4(1.0f, 1.0f);
+// normal vector
+glm::vec3 nm(0.0f, 0.0f, 1.0f);
+
+// 计算切线/副法线（只需要计算一次，因为两个三角形结果一致）
+glm::vec3 tangent, bitangent;
+// 使用三角形1 (pos1, pos2, pos3)
+glm::vec3 edge1 = pos2 - pos1;
+glm::vec3 edge2 = pos3 - pos1;
+glm::vec2 deltaUV1 = uv2 - uv1;
+glm::vec2 deltaUV2 = uv3 - uv1;
+
+float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+
+bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+// 顶点数组：4个唯一顶点，每个顶点包含位置、法线、纹理坐标、切线、副法线
+float quadVertices[] = {
+    // positions        // normal         // texcoords  // tangent                       // bitangent
+    pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z,
+    pos2.x, pos2.y, pos2.z, nm.x, nm.y, nm.z, uv2.x, uv2.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z,
+    pos3.x, pos3.y, pos3.z, nm.x, nm.y, nm.z, uv3.x, uv3.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z,
+    pos4.x, pos4.y, pos4.z, nm.x, nm.y, nm.z, uv4.x, uv4.y, tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z,
+};
+
+// 索引数组：两个三角形 (0-1-2 和 0-2-3)
+unsigned int indices[] = {
+    0, 1, 2,
+    0, 2, 3
+};
+
+// 配置VAO, VBO, EBO
+glGenVertexArrays(1, &geometry->mVao);
+glGenBuffers(1, &geometry->mQuadVbo);
+glGenBuffers(1, &geometry->mEbo);   // 生成EBO
+
+glBindVertexArray(geometry->mVao);
+
+// 顶点数据
+glBindBuffer(GL_ARRAY_BUFFER, geometry->mQuadVbo);
+glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+// 索引数据
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry->mEbo);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+// 顶点属性指针（步长不变，仍为14个float）
+glEnableVertexAttribArray(0);
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
+glEnableVertexAttribArray(2);
+glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));
+glEnableVertexAttribArray(1);
+glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));
+glEnableVertexAttribArray(3);
+glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));
+glEnableVertexAttribArray(4);
+glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(11 * sizeof(float)));
+
+// 绘制时使用 glDrawElements 代替 glDrawArrays
+// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	geometry->mIndicesCount = 6;
+	return geometry;
+}
+
 Geometry * Geometry::createScreenPlane() {
 	Geometry *geometry = new Geometry();
 	float vertices [] = {
