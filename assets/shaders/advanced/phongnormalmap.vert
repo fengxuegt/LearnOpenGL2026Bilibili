@@ -16,7 +16,7 @@ uniform mat4 normalMat;
 void main() {
     gl_Position = projectionMat * viewMat * transMat * vec4(aPos, 1.0f);
     fUV = aUV;
-    fNormal = mat3(normalMat) * aNormal;
+    fNormal = normalize(mat3(normalMat) * aNormal);
     worldPos = (transMat * vec4(aPos, 1.0f)).xyz;
 
     vec3 tangent = normalize(mat3(transMat) * aTangent);

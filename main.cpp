@@ -30,6 +30,7 @@
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 #include "glframework/material/advanced/phongnormalmapmaterial.h"
+#include "glframework/material/advanced/phongparallaxmapmaterial.h"
 
 Renderer *renderer;
 std::vector<Mesh*> meshes;
@@ -49,6 +50,8 @@ AmbientLight *ambLight = nullptr;
 glm::vec3 lightDirection = glm::vec3(0.0f, -1.0f, 0.0f); // 光的方向
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 光的颜色
 glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
+
+PhongParallaxMapMaterial *planeMat = nullptr;
 
 void frameSizeCallback(int width, int height) {
     std::cout << width << " " << height << std::endl;
@@ -111,12 +114,13 @@ void prepare() {
 
     // pass 01
     auto planeGeo = Geometry::createNormapPlane();
-    auto planeMat = new PhongNormalMapMaterial();
-    planeMat->mDiffuse = new Texture("assets/textures/normal/brickwall.jpg", 0, GL_SRGB_ALPHA);
-    planeMat->mNormalMap = new Texture("assets/textures/normal/normal_map.png", 1);
+    planeMat = new PhongParallaxMapMaterial();
+    planeMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
+    planeMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
+    planeMat->mParallaxMap = new Texture("assets/textures/parallax/disp.jpg", 2);
     planeMat->mShininess = 128;
     auto mesh = new Mesh(planeGeo, planeMat);
-    mesh->rotateX(-90.0f);
+    mesh->rotateY(30);
     offScene->addChild(mesh);
 
     // pass 02
@@ -131,9 +135,9 @@ void prepare() {
 
     // light init
     dirLight = new DirectionalLight();
-    dirLight->mLightColor = lightColor;
-    dirLight->mLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-    // dirLight->mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+    dirLight->mLightColor = glm::vec3(1.0f, 1.0f, 1.0f);;
+    // dirLight->mLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+    dirLight->mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
     dirLight->mLightIntensity = 0.5f;
     ambLight = new AmbientLight();
     ambLight->mLightColor = lightColor;
@@ -156,6 +160,7 @@ void renderIMGUI() {
     ImGui::Begin("Hello world");
     ImGui::Text("Hello World");
     ImGui::Button("Test Button", ImVec2(20, 20));
+    ImGui::SliderFloat("heightScale", &planeMat->mHeightScale, 0.0f, 1.0f);
     // ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
     ImGui::End();
 
@@ -185,8 +190,8 @@ int main() {
     while (LWAPP->update()) {
         cameraControl->update();
         renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
-        renderIMGUI();
         renderer->render(onScene, camera, dirLight, ambLight, 0);
+        renderIMGUI();
     }
 
     LWAPP->destroy();

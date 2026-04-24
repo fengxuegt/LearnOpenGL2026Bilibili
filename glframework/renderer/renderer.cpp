@@ -14,6 +14,7 @@
 #include "glframework/material/screenplanematerial.h"
 #include "glframework/material/whitematerial.h"
 #include "glframework/material/advanced/phongnormalmapmaterial.h"
+#include "glframework/material/advanced/phongparallaxmapmaterial.h"
 
 Renderer::Renderer() {
     mPhongShader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
@@ -154,10 +155,12 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
             }
             break;
             case MaterialType::PhongParallaxMapMaterial: {
-                PhongNormalMapMaterial *phongMaterial = (PhongNormalMapMaterial*)(material);
+                PhongParallaxMapMaterial *phongMaterial = (PhongParallaxMapMaterial*)(material);
                 // 更新Shader的Uniform变量
                 shader->setUniformInt("samplerAsuna", 0);
                 shader->setUniformInt("normalMapSampler", 1);
+                shader->setUniformInt("parallaxMapSampler", 2);
+
                 shader->setUniformMat4("viewMat", camera->getViewMatrix());
                 shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
 
@@ -167,9 +170,11 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 shader->setUniformVec3Float("cameraPosition", camera->mPosition);
                 shader->setUniformFloat("specularIntensity", directionalLight->mLightIntensity);
                 shader->setUniformFloat("mShiness", phongMaterial->mShininess);
+                shader->setUniformFloat("heightScale", phongMaterial->mHeightScale);
 
                 phongMaterial->mDiffuse->Bind();
                 phongMaterial->mNormalMap->Bind();
+                phongMaterial->mParallaxMap->Bind();
                 shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
                 shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
             }

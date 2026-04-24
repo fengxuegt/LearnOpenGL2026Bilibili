@@ -2,6 +2,7 @@
 in vec2 fUV;
 in vec3 fNormal;
 in vec3 worldPos;
+in mat3 tbn;
 out vec4 FragColor;
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -10,25 +11,48 @@ uniform float specularIntensity;
 uniform float mShiness;
 uniform sampler2D samplerAsuna;
 uniform sampler2D normalMapSampler;
+uniform sampler2D parallaxMapSampler;
 uniform vec3 cameraPosition;
+uniform float heightScale;
 
+vec2 parallaxUV(vec2 uv, vec3 viewDir) {
+    viewDir = normalize(transpose(tbn) * viewDir);
+    float height = texture(parallaxMapSampler, uv).r;
+    vec2 offset = viewDir.xy / viewDir.z * height * heightScale;
+    return uv - offset;
+}
+vec2 parallaxUVSteep(vec2 uv, vec3 viewDir) {
+    viewDir = normalize(transpose(tbn) * viewDir);
+    float layerNum = 10.0f;
+    float layerDepth = 1.0f / layerNum;
+    vec2 deltaUV = viewDir.xy / viewDir.z * heightScale / layerNum;
+    vec2 currentUV = uv;
+    float currentSampleValue = texture(parallaxMapSampler, currentUV).r;
+    float currentLayerDepth = 0.0f;
+    while (currentLayerDepth < currentSampleValue) {
+        currentUV -= deltaUV;
+        currentSampleValue = texture(parallaxMapSampler, currentUV).r;
+        currentLayerDepth += layerDepth;
+    }
 
-vec2 parallaxMap(vec2 uv, vec3 viewDir) {
-    return uv;
+    return currentUV;
 }
 
 void main() {
-//    vec3 normalN = normalize(fNormal);
-    vec3 normalN = texture(normalMapSampler, fUV).rgb;
+    vec3 viewDirection = normalize(worldPos - cameraPosition);
+    vec2 realUV = parallaxUVSteep(fUV, viewDirection);
+
+    //    vec3 normalN = normalize(fNormal);
+    vec3 normalN = texture(normalMapSampler, realUV).rgb;
     normalN = normalN * 2.0 - vec3(1.0);
-    normalN = normalize(normalN);
-    vec3 objectColor = texture(samplerAsuna, fUV).xyz;
+    normalN = normalize(tbn * normalN);
+    vec3 objectColor = texture(samplerAsuna, realUV).xyz;
     vec3 diffuse = lightColor * objectColor * clamp(dot(normalize(normalN), -normalize(lightDirection)), 0, 1);
     vec3 lightDirectionN = normalize(lightDirection);
 
     float flag = step(0.0f, dot(-lightDirectionN, normalN));
 
-    vec3 viewDirection = normalize(worldPos - cameraPosition);
+
     vec3 lightReflect = normalize(reflect(lightDirectionN, normalN));
     float specularFactor = clamp(dot(lightReflect, -viewDirection), 0, 1);
     specularFactor = pow(specularFactor, mShiness);

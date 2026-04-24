@@ -5,7 +5,7 @@
 #include "phongparallaxmapmaterial.h"
 
 PhongParallaxMapMaterial::PhongParallaxMapMaterial() {
-    mType = MaterialType::PhongNormalMapMaterial;
+    mType = MaterialType::PhongParallaxMapMaterial;
 }
 
 PhongParallaxMapMaterial::~PhongParallaxMapMaterial() {

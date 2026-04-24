@@ -18,6 +18,7 @@ public:
     Texture *mNormalMap{nullptr};
     Texture *mParallaxMap{nullptr};
     float mShininess{64.0f};
+    float mHeightScale{0.1f};
 };
 
 
