@@ -30,6 +30,8 @@ add_library(glframework shader.cpp
         material/advanced/phongnormalmapmaterial.cpp
         material/advanced/phongnormalmapmaterial.h
         material/advanced/phongparallaxmapmaterial.cpp
-        material/advanced/phongparallaxmapmaterial.h)
+        material/advanced/phongparallaxmapmaterial.h
+        light/pointlight.cpp
+        light/pointlight.h)
 target_include_directories(glframework PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(glframework glad glfw lwapp glm camera)

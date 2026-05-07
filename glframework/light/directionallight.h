@@ -13,9 +13,6 @@ public:
     DirectionalLight(glm::vec3 color, glm::vec3 direction);
     ~DirectionalLight();
 
-
-public:
-    glm::vec3 mLightDirection{-1.0f};
 };
 
 

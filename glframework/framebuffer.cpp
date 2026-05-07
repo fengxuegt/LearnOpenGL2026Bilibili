@@ -4,6 +4,20 @@
 
 #include "framebuffer.h"
 
+FrameBuffer * FrameBuffer::createShadowFbo(int width, int height) {
+    FrameBuffer * fbo = new FrameBuffer();
+    fbo->mWidth = width;
+    fbo->mHeight = height;
+    glGenFramebuffers(1, &fbo->mFbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo->mFbo);
+    fbo->mDepthAttachment = Texture::createDepthAttachment(width, height, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->mDepthAttachment->getTextureID(), 0);
+    glDrawBuffer(GL_NONE);  // 显示告诉OpenGL，我们当前的fbo没有颜色输出
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return fbo;
+
+}
+
 FrameBuffer::FrameBuffer(int width, int height) {
     mWidth = width;
     mHeight = height;
@@ -12,12 +26,15 @@ FrameBuffer::FrameBuffer(int width, int height) {
     mColorAttachment = Texture::createColorAttachment(mWidth, mHeight, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D, mColorAttachment->getTextureID(), 0);
 
-    mDepthStencilAttachment = Texture::createDepthAttachment(mWidth, mHeight, 0);
+    mDepthStencilAttachment = Texture::createDepthStencilAttachment(mWidth, mHeight, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,GL_TEXTURE_2D, mDepthStencilAttachment->getTextureID(), 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "ERROR::FRAMEBUFFER::FRAMEBUFFER" << std::endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+FrameBuffer::FrameBuffer() {
 }
 
 FrameBuffer::~FrameBuffer() {

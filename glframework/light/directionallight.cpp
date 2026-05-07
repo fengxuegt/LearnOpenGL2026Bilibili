@@ -9,7 +9,6 @@ DirectionalLight::DirectionalLight() {
 
 DirectionalLight::DirectionalLight(glm::vec3 color, glm::vec3 direction) {
     mLightColor = color;
-    mLightDirection = direction;
 }
 
 DirectionalLight::~DirectionalLight() {

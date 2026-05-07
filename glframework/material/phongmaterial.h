@@ -14,6 +14,7 @@ public:
     ~PhongMaterial();
 public:
     Texture *mDiffuse{nullptr};
+    Texture * mSpecularMask{nullptr};
     float mShininess {1.0f};
 
 

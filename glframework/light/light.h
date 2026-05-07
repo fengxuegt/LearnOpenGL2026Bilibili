@@ -5,9 +5,11 @@
 #ifndef LIGHT_H
 #define LIGHT_H
 
+#include <object.h>
+
 #include "core.h"
 
-class Light {
+class Light : public Object{
 public:
     Light();
     Light(glm::vec3 color);

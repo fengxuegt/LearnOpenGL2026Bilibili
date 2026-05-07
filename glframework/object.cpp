@@ -43,7 +43,7 @@ void Object::setScale(glm::vec3 scale) {
     mScale = scale;
 }
 
-glm::mat4 Object::getModelMatrix() {
+glm::mat4 Object::getModelMatrix() const{
     glm::mat4 parentlMatrix = glm::mat4(1.0f);
     if (mParent) {
         parentlMatrix = mParent->getModelMatrix();
@@ -87,6 +87,12 @@ void Object::setPosition(glm::vec3 position) {
 
 glm::vec3 Object::getPosition() {
     return mPosition;
+}
+
+glm::vec3 Object::getDirection() const {
+    auto modelMat = glm::mat3(getModelMatrix());
+    auto dir = glm::normalize(-modelMat[2]);
+    return dir;
 }
 
 Object* Object::getParent() {

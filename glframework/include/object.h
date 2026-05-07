@@ -31,11 +31,14 @@ public:
 
     void setScale(glm::vec3 scale);
 
-    glm::mat4 getModelMatrix();
+    glm::mat4 getModelMatrix() const;
     glm::mat4 getModelMatrixAPI();
 
     void setPosition(glm::vec3 position);
     glm::vec3 getPosition();
+
+    // 获取光源朝向
+    glm::vec3 getDirection() const;
 
     Object* getParent();
     void addChild(Object* child);

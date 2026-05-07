@@ -9,6 +9,7 @@ uniform vec3 ambientColor;
 uniform float specularIntensity;
 uniform float mShiness;
 uniform sampler2D samplerAsuna;
+uniform sampler2D specularMask;
 uniform vec3 cameraPosition;
 void main() {
     vec3 objectColor = texture(samplerAsuna, fUV).xyz;
@@ -21,7 +22,8 @@ void main() {
     vec3 lightReflect = normalize(reflect(lightDirectionN, normalN));
     float specularFactor = clamp(dot(lightReflect, -viewDirection), 0, 1);
     specularFactor = pow(specularFactor, mShiness);
-    vec3 specular = lightColor * specularFactor * flag * specularIntensity;
+    float flagg = texture(specularMask, fUV).r;
+    vec3 specular = lightColor * specularFactor * flag * specularIntensity * flagg;
 
     vec3 ambient = ambientColor * objectColor;
     vec3 result = diffuse + specular + ambient;

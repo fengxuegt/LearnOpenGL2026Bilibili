@@ -92,10 +92,10 @@ void prepareCamera() {
 
 void prepare() {
     // glEnable(GL_FRAMEBUFFER_SRGB);
+    fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
     renderer = new Renderer();
     offScene = new Scene();
     onScene = new Scene();
-    fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
 
     // cube map
     std::vector<std::string> paths = {
@@ -110,34 +110,54 @@ void prepare() {
     auto skyboxMat = new CubeMaterial();
     skyboxMat->mDiffuse = new Texture(paths, 0, GL_SRGB_ALPHA);
     auto skyboxMesh = new Mesh(skyboxGeo, skyboxMat);
-    offScene->addChild(skyboxMesh);
+    // offScene->addChild(skyboxMesh);
 
     // pass 01
-    auto planeGeo = Geometry::createNormapPlane();
-    planeMat = new PhongParallaxMapMaterial();
-    planeMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
-    planeMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
-    planeMat->mParallaxMap = new Texture("assets/textures/parallax/disp.jpg", 2);
-    planeMat->mShininess = 128;
-    auto mesh = new Mesh(planeGeo, planeMat);
-    mesh->rotateY(30);
+    // auto planeGeo = Geometry::createNormapPlane();
+    // planeMat = new PhongParallaxMapMaterial();
+    // planeMat->mDiffuse = new Texture("assets/textures/parallax/bricks.jpg", 0, GL_SRGB_ALPHA);
+    // planeMat->mNormalMap = new Texture("assets/textures/parallax/bricks_normal.jpg", 1);
+    // planeMat->mParallaxMap = new Texture("assets/textures/parallax/disp.jpg", 2);
+    // planeMat->mShininess = 128;
+    // auto mesh = new Mesh(planeGeo, planeMat);
+    // mesh->rotateY(30);
+    // offScene->addChild(mesh);
+
+    auto planeGeo = Geometry::createPlane(5, 3);
+    auto planeMat = new PhongMaterial();
+    planeMat->mDiffuse = new Texture("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA);
+    planeMat->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
+    auto planeMesh = new Mesh(planeGeo, planeMat);
+    planeMesh->rotateX(-90.0f);
+    planeMesh->setPosition(glm::vec3(0, 0, 0));
+    offScene->addChild(planeMesh);
+
+    auto boxGeo = Geometry::createBox(1.0f);
+    auto boxMat = new PhongMaterial();
+    boxMat->mDiffuse = new Texture("assets/textures/box.png", 0, GL_SRGB_ALPHA);
+    boxMat->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
+    boxMat->mShininess = 128;
+    auto mesh = new Mesh(boxGeo, boxMat);
+    mesh->setPosition(glm::vec3(0, 0, 0));
     offScene->addChild(mesh);
 
     // pass 02
     Geometry * geometry = Geometry::createScreenPlane();
     auto * material = new ScreenPlaneMaterial();
-    material->mDiffuse = fbo->mColorAttachment;
+    // material->mDiffuse = fbo->mColorAttachment;
+    material->mDiffuse = renderer->mShadowFBO->mDepthAttachment;
     Mesh *plane = new Mesh(geometry, material);
     onScene->addChild(plane);
 
-
-
-
     // light init
     dirLight = new DirectionalLight();
-    dirLight->mLightColor = glm::vec3(1.0f, 1.0f, 1.0f);;
+    dirLight->mLightColor = glm::vec3(1.0f, 1.0f, 1.0f);
     // dirLight->mLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-    dirLight->mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+    // dirLight->mLightDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+    // dirLight->mLightDirection = glm::vec3(-1.0f, -1.0f, -1.0f);
+    dirLight->setPosition(glm::vec3(3.0f, 3.0f, 3.0f));
+    dirLight->rotateY(45.0f);
+    dirLight->rotateX(-45.0f);
     dirLight->mLightIntensity = 0.5f;
     ambLight = new AmbientLight();
     ambLight->mLightColor = lightColor;
@@ -185,13 +205,13 @@ int main() {
     initIMGUI();
     prepare();
     prepareCamera();
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.4f, 0.4f, 0.2f, 1.0f);
     glViewport(0, 0, 2560, 1440);
     while (LWAPP->update()) {
         cameraControl->update();
         renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
         renderer->render(onScene, camera, dirLight, ambLight, 0);
-        renderIMGUI();
+        // renderIMGUI();
     }
 
     LWAPP->destroy();

@@ -9,7 +9,11 @@
 
 class FrameBuffer {
 public:
+    static FrameBuffer* createShadowFbo(int width, int height);
+
+
     FrameBuffer(int width, int height);
+    FrameBuffer();
     ~FrameBuffer();
 
 
@@ -19,7 +23,7 @@ public:
     GLuint mFbo{0};
     Texture *mColorAttachment{nullptr};
     Texture *mDepthStencilAttachment{nullptr};
-
+    Texture *mDepthAttachment{nullptr};
 };
 
 
