@@ -31,6 +31,7 @@
 #include "glframework/material/whitematerial.h"
 #include "glframework/material/advanced/phongnormalmapmaterial.h"
 #include "glframework/material/advanced/phongparallaxmapmaterial.h"
+#include "glframework/material/advanced/phongshadowmapmaterial.h"
 
 Renderer *renderer;
 std::vector<Mesh*> meshes;
@@ -124,7 +125,8 @@ void prepare() {
     // offScene->addChild(mesh);
 
     auto planeGeo = Geometry::createPlane(5, 3);
-    auto planeMat = new PhongMaterial();
+    auto planeMat = new PhongShadowMapMaterial();
+    // auto planeMat = new PhongMaterial();
     planeMat->mDiffuse = new Texture("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA);
     planeMat->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
     auto planeMesh = new Mesh(planeGeo, planeMat);
@@ -133,7 +135,8 @@ void prepare() {
     offScene->addChild(planeMesh);
 
     auto boxGeo = Geometry::createBox(1.0f);
-    auto boxMat = new PhongMaterial();
+    auto boxMat = new PhongShadowMapMaterial();
+    // auto boxMat = new PhongMaterial();
     boxMat->mDiffuse = new Texture("assets/textures/box.png", 0, GL_SRGB_ALPHA);
     boxMat->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
     boxMat->mShininess = 128;
@@ -144,8 +147,8 @@ void prepare() {
     // pass 02
     Geometry * geometry = Geometry::createScreenPlane();
     auto * material = new ScreenPlaneMaterial();
-    // material->mDiffuse = fbo->mColorAttachment;
-    material->mDiffuse = renderer->mShadowFBO->mDepthAttachment;
+    material->mDiffuse = fbo->mColorAttachment;
+    // material->mDiffuse = renderer->mShadowFBO->mDepthAttachment;
     Mesh *plane = new Mesh(geometry, material);
     onScene->addChild(plane);
 

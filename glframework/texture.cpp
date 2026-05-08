@@ -165,6 +165,10 @@ void Texture::Bind() {
     glBindTexture(mTextureTarget, mTextureID);
 }
 
+void Texture::setUnit(int unit) {
+    mUnitID = unit;
+}
+
 int Texture::getWidth() {
     return mWidth;
 }

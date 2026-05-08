@@ -16,6 +16,7 @@
 #include "glframework/material/whitematerial.h"
 #include "glframework/material/advanced/phongnormalmapmaterial.h"
 #include "glframework/material/advanced/phongparallaxmapmaterial.h"
+#include "glframework/material/advanced/phongshadowmapmaterial.h"
 
 Renderer::Renderer() {
     mPhongShader = new Shader("assets/shaders/phong.vert", "assets/shaders/phong.frag");
@@ -28,6 +29,7 @@ Renderer::Renderer() {
     mPhongNormalMapShader = new Shader("assets/shaders/advanced/phongnormalmap.vert", "assets/shaders/advanced/phongnormalmap.frag");
     mPhongParallaxMapShader = new Shader("assets/shaders/advanced/phongparallaxmap.vert", "assets/shaders/advanced/phongparallaxmap.frag");
     mShadowShader = new Shader("assets/shaders/advanced/shadow.vert", "assets/shaders/advanced/shadow.frag");
+    mPhongShadowMapShader = new Shader("assets/shaders/advanced/phongshadow.vert", "assets/shaders/advanced/phongshadow.frag");
     mShadowFBO = FrameBuffer::createShadowFbo(2048, 2048);
 }
 
@@ -157,6 +159,31 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                     shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
                 }
                 break;
+            case MaterialType::PhongShadowMapMaterial: {
+                PhongShadowMapMaterial *phongMaterial = (PhongShadowMapMaterial*)(material);
+                // 更新Shader的Uniform变量
+                shader->setUniformInt("samplerAsuna", 0);
+                shader->setUniformInt("specularMask", 1);
+                shader->setUniformInt("shadowMapSampler", 2);
+                mShadowFBO->mDepthAttachment->setUnit(2);
+                mShadowFBO->mDepthAttachment->Bind();
+                shader->setUniformMat4("viewMat", camera->getViewMatrix());
+                shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
+                shader->setUniformMat4("lightMatrix", getLightMatrix(directionalLight));
+
+                shader->setUniformVec3Float("lightDirection", directionalLight->getDirection());
+                shader->setUniformVec3Float("lightColor", directionalLight->mLightColor);
+                shader->setUniformVec3Float("ambientColor", ambientLight->mLightColor);
+                shader->setUniformVec3Float("cameraPosition", camera->mPosition);
+                shader->setUniformFloat("specularIntensity", directionalLight->mLightIntensity);
+                shader->setUniformFloat("mShiness", phongMaterial->mShininess);
+
+                phongMaterial->mDiffuse->Bind();
+                phongMaterial->mSpecularMask->Bind();
+                shader->setUniformMat4("transMat", mesh->getModelMatrixAPI());
+                shader->setUniformMat4("normalMat", glm::transpose(glm::inverse(mesh->getModelMatrixAPI())));
+            }
+            break;
             case MaterialType::PhongNormalMapMaterial: {
                 PhongNormalMapMaterial *phongMaterial = (PhongNormalMapMaterial*)(material);
                 // 更新Shader的Uniform变量
@@ -384,6 +411,9 @@ Shader * Renderer::pickShader(MaterialType type) {
         break;
         case MaterialType::PhongParallaxMapMaterial:
             resultShader = mPhongParallaxMapShader;
+        break;
+        case MaterialType::PhongShadowMapMaterial:
+            resultShader = mPhongShadowMapShader;
         break;
         default:
             break;

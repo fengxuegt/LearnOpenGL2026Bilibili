@@ -44,6 +44,7 @@ private:
     Shader *mCubeBallShader{nullptr};
     Shader *mPhongNormalMapShader{nullptr};
     Shader *mPhongParallaxMapShader{nullptr};
+    Shader *mPhongShadowMapShader{nullptr};
     Shader *mShadowShader{nullptr};
 public:
     std::vector<Mesh*> mOpacityObjects{};

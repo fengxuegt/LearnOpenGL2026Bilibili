@@ -38,6 +38,7 @@ public:
 
 public:
     void Bind();
+	void setUnit(int unit);
 	int getWidth();
 	int getHeight();
 
