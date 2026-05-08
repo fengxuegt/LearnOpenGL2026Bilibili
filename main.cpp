@@ -182,6 +182,8 @@ void renderIMGUI() {
     ImGui::Text("Hello World");
     ImGui::Button("Test Button", ImVec2(20, 20));
     ImGui::SliderFloat("bias", &phongShadowMapMaterial->mBias, 0.0f, 0.01f, "%.4f");
+    ImGui::SliderFloat("tightness", &phongShadowMapMaterial->mDiskTightness, 0.0f, 1.0f, "%.3f");
+    ImGui::SliderFloat("pcfradius", &phongShadowMapMaterial->mPcfRadius, 0.0f, 1.0f, "%.4f");
     // ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
     ImGui::End();
 

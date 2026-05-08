@@ -166,6 +166,8 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 shader->setUniformInt("specularMask", 1);
                 shader->setUniformInt("shadowMapSampler", 2);
                 shader->setUniformFloat("bias", phongMaterial->mBias);
+                shader->setUniformFloat("pcfRadius", phongMaterial->mPcfRadius);
+                shader->setUniformFloat("diskTightness", phongMaterial->mDiskTightness);
                 mShadowFBO->mDepthAttachment->setUnit(2);
                 mShadowFBO->mDepthAttachment->Bind();
                 shader->setUniformMat4("viewMat", camera->getViewMatrix());
