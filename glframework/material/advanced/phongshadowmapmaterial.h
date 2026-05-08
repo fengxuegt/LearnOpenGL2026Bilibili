@@ -18,6 +18,7 @@ public:
     Texture *mDiffuse{nullptr};
     Texture * mSpecularMask{nullptr};
     float mShininess {1.0f};
+    float mBias {0.0f};
 };
 
 

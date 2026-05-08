@@ -45,6 +45,7 @@ Geometry *plane = nullptr;
 Geometry *box = nullptr;
 Geometry *sphere = nullptr;
 FrameBuffer *fbo = nullptr;
+PhongShadowMapMaterial *phongShadowMapMaterial = nullptr;
 
 DirectionalLight *dirLight = nullptr;
 AmbientLight *ambLight = nullptr;
@@ -125,22 +126,19 @@ void prepare() {
     // offScene->addChild(mesh);
 
     auto planeGeo = Geometry::createPlane(5, 3);
-    auto planeMat = new PhongShadowMapMaterial();
-    // auto planeMat = new PhongMaterial();
-    planeMat->mDiffuse = new Texture("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA);
-    planeMat->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
-    auto planeMesh = new Mesh(planeGeo, planeMat);
+    phongShadowMapMaterial = new PhongShadowMapMaterial();
+    phongShadowMapMaterial->mDiffuse = new Texture("assets/textures/grass.jpg", 0, GL_SRGB_ALPHA);
+    phongShadowMapMaterial->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
+    auto planeMesh = new Mesh(planeGeo, phongShadowMapMaterial);
     planeMesh->rotateX(-90.0f);
     planeMesh->setPosition(glm::vec3(0, 0, 0));
     offScene->addChild(planeMesh);
 
     auto boxGeo = Geometry::createBox(1.0f);
-    auto boxMat = new PhongShadowMapMaterial();
-    // auto boxMat = new PhongMaterial();
-    boxMat->mDiffuse = new Texture("assets/textures/box.png", 0, GL_SRGB_ALPHA);
-    boxMat->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
-    boxMat->mShininess = 128;
-    auto mesh = new Mesh(boxGeo, boxMat);
+    // phongShadowMapMaterial->mDiffuse = new Texture("assets/textures/box.png", 0, GL_SRGB_ALPHA);
+    phongShadowMapMaterial->mSpecularMask = new Texture("assets/textures/sp_mask.png", 1);
+    phongShadowMapMaterial->mShininess = 128;
+    auto mesh = new Mesh(boxGeo, phongShadowMapMaterial);
     mesh->setPosition(glm::vec3(0, 0, 0));
     offScene->addChild(mesh);
 
@@ -183,7 +181,7 @@ void renderIMGUI() {
     ImGui::Begin("Hello world");
     ImGui::Text("Hello World");
     ImGui::Button("Test Button", ImVec2(20, 20));
-    ImGui::SliderFloat("heightScale", &planeMat->mHeightScale, 0.0f, 1.0f);
+    ImGui::SliderFloat("bias", &phongShadowMapMaterial->mBias, 0.0f, 0.01f, "%.4f");
     // ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
     ImGui::End();
 
@@ -214,7 +212,7 @@ int main() {
         cameraControl->update();
         renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
         renderer->render(onScene, camera, dirLight, ambLight, 0);
-        // renderIMGUI();
+        renderIMGUI();
     }
 
     LWAPP->destroy();

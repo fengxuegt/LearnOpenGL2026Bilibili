@@ -14,6 +14,7 @@ uniform float mShiness;
 uniform sampler2D samplerAsuna;
 uniform sampler2D specularMask;
 uniform sampler2D shadowMapSampler; //
+uniform float bias;
 uniform vec3 cameraPosition;
 
 
@@ -26,7 +27,7 @@ float calculateShadow() {
     // 使用UV对Shadow Map进行采样，得到ClosestDepth
     float cloestDepth = texture(shadowMapSampler, uv).r;
     // 对比当前像素在光源空间的深度值，与ClosestDepth比大小
-    float selfDepth = projCoord.z;
+    float selfDepth = projCoord.z - bias;
     float shadow = selfDepth > cloestDepth ? 1.0f : 0.0;
     return shadow;
 }
