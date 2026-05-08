@@ -17,8 +17,14 @@ uniform sampler2D shadowMapSampler; //
 uniform float bias;
 uniform vec3 cameraPosition;
 
+float autoBias(vec3 normal, vec3 lightDirection) {
+    vec3 normalN = normalize(normal);
+    vec3 lightDir = normalize(lightDirection);
+    return max(bias * (1 - dot(normalN, lightDir)), 0.0005);
+}
 
-float calculateShadow() {
+
+float calculateShadow(vec3 normal, vec3 lightDirection) {
     // 找到当前像素在光源空间下的NDC坐标
     vec3 lightNDC = lightSpaceClipCoord.xyz / lightSpaceClipCoord.w;
     // 找到当前像素在ShadowMap上的UV
@@ -27,7 +33,7 @@ float calculateShadow() {
     // 使用UV对Shadow Map进行采样，得到ClosestDepth
     float cloestDepth = texture(shadowMapSampler, uv).r;
     // 对比当前像素在光源空间的深度值，与ClosestDepth比大小
-    float selfDepth = projCoord.z - bias;
+    float selfDepth = projCoord.z - autoBias(normal, lightDirection);
     float shadow = selfDepth > cloestDepth ? 1.0f : 0.0;
     return shadow;
 }
@@ -48,7 +54,7 @@ void main() {
 
     vec3 ambient = ambientColor * objectColor;
     vec3 finalColor = diffuse + specular;
-    float shadow = calculateShadow();
+    float shadow = calculateShadow(fNormal, -lightDirection);
 
     vec3 result = finalColor * (1 - shadow) + ambient;
     FragColor = vec4(result, 1.0f);
