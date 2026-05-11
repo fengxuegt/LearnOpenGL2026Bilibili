@@ -8,6 +8,7 @@
 #include <glframework/material/phongmaterial.h>
 
 #include "glframework/instancedmesh.h"
+#include "glframework/light/shadow/directionallightshadow.h"
 #include "glframework/material/cubeballmaterial.h"
 #include "glframework/material/cubematerial.h"
 #include "glframework/material/phongenvmaterial.h"
@@ -30,7 +31,6 @@ Renderer::Renderer() {
     mPhongParallaxMapShader = new Shader("assets/shaders/advanced/phongparallaxmap.vert", "assets/shaders/advanced/phongparallaxmap.frag");
     mShadowShader = new Shader("assets/shaders/advanced/shadow.vert", "assets/shaders/advanced/shadow.frag");
     mPhongShadowMapShader = new Shader("assets/shaders/advanced/phongshadow.vert", "assets/shaders/advanced/phongshadow.frag");
-    mShadowFBO = FrameBuffer::createShadowFbo(2048, 2048);
 }
 
 Renderer::~Renderer() {
@@ -108,7 +108,7 @@ void Renderer::render(Scene *scene, Camera *camera, DirectionalLight *directiona
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     mOpacityObjects.clear();
     projectObject(scene);
-    renderShadowMap(mOpacityObjects,directionalLight,mShadowFBO);
+    renderShadowMap(mOpacityObjects,directionalLight,directionalLight->mShadow->mRenderTarget);
     for (int i = 0; i < mOpacityObjects.size(); i++) {
         renderObject(mOpacityObjects[i], camera, directionalLight, ambientLight);
     }
@@ -161,18 +161,19 @@ void Renderer::renderObject(Object *object, Camera *camera, DirectionalLight *di
                 break;
             case MaterialType::PhongShadowMapMaterial: {
                 PhongShadowMapMaterial *phongMaterial = (PhongShadowMapMaterial*)(material);
+                DirectionalLightShadow *shadow = (DirectionalLightShadow*)(directionalLight->mShadow);
                 // 更新Shader的Uniform变量
                 shader->setUniformInt("samplerAsuna", 0);
                 shader->setUniformInt("specularMask", 1);
                 shader->setUniformInt("shadowMapSampler", 2);
-                shader->setUniformFloat("bias", phongMaterial->mBias);
-                shader->setUniformFloat("pcfRadius", phongMaterial->mPcfRadius);
-                shader->setUniformFloat("diskTightness", phongMaterial->mDiskTightness);
-                mShadowFBO->mDepthAttachment->setUnit(2);
-                mShadowFBO->mDepthAttachment->Bind();
+                shader->setUniformFloat("bias", shadow->mBias);
+                shader->setUniformFloat("pcfRadius", shadow->mPcfRadius);
+                shader->setUniformFloat("diskTightness", shadow->mDiskTightness);
+                shadow->mRenderTarget->mDepthAttachment->setUnit(2);
+                shadow->mRenderTarget->mDepthAttachment->Bind();
                 shader->setUniformMat4("viewMat", camera->getViewMatrix());
                 shader->setUniformMat4("projectionMat", camera->getProjectionMatrix());
-                shader->setUniformMat4("lightMatrix", getLightMatrix(directionalLight));
+                shader->setUniformMat4("lightMatrix", shadow->getLightMatrix(directionalLight->getModelMatrix()));
 
                 shader->setUniformVec3Float("lightDirection", directionalLight->getDirection());
                 shader->setUniformVec3Float("lightColor", directionalLight->mLightColor);
@@ -352,7 +353,8 @@ void Renderer::renderShadowMap(const std::vector<Mesh *> &meshes, DirectionalLig
     glBindFramebuffer(GL_FRAMEBUFFER, fbo->mFbo);
     glViewport(0, 0, fbo->mWidth, fbo->mHeight);
     glClear(GL_DEPTH_BUFFER_BIT);
-    auto lightMatrix = getLightMatrix(directionalLight);
+    DirectionalLightShadow *shadow = (DirectionalLightShadow*)directionalLight->mShadow;
+    auto lightMatrix = shadow->getLightMatrix(directionalLight->getModelMatrix());
 
     // 设置Shader参数
     mShadowShader->useProgram();
@@ -374,14 +376,6 @@ void Renderer::renderShadowMap(const std::vector<Mesh *> &meshes, DirectionalLig
     glBindFramebuffer(GL_FRAMEBUFFER, preFbo);
     glViewport(preViewport[0], preViewport[1], preViewport[2], preViewport[3]);
 
-}
-
-glm::mat4 Renderer::getLightMatrix(DirectionalLight *directional_light) {
-    auto lightViewMatrix = glm::inverse(directional_light->getModelMatrix());
-    float size = 6.0f;
-    auto lightCamera = new OrthographicCamera(-size, size, -size, size, 0.1, 80.0);
-    auto lightProjectionMatrix = lightCamera->getProjectionMatrix();
-    return lightProjectionMatrix * lightViewMatrix;
 }
 
 Shader * Renderer::pickShader(MaterialType type) {

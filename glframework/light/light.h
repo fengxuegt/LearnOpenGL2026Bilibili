@@ -8,6 +8,7 @@
 #include <object.h>
 
 #include "core.h"
+#include "shadow/shadow.h"
 
 class Light : public Object{
 public:
@@ -18,6 +19,8 @@ public:
 public:
     glm::vec3 mLightColor{1.0f};
     float mLightIntensity{1.0f};
+
+    Shadow *mShadow{nullptr};
 };
 
 

@@ -181,9 +181,17 @@ void renderIMGUI() {
     ImGui::Begin("Hello world");
     ImGui::Text("Hello World");
     ImGui::Button("Test Button", ImVec2(20, 20));
-    ImGui::SliderFloat("bias", &phongShadowMapMaterial->mBias, 0.0f, 0.01f, "%.4f");
-    ImGui::SliderFloat("tightness", &phongShadowMapMaterial->mDiskTightness, 0.0f, 1.0f, "%.3f");
-    ImGui::SliderFloat("pcfradius", &phongShadowMapMaterial->mPcfRadius, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("bias", &dirLight->mShadow->mBias, 0.0f, 0.01f, "%.4f");
+    ImGui::SliderFloat("tightness", &dirLight->mShadow->mDiskTightness, 0.0f, 5.0f, "%.3f");
+    ImGui::SliderFloat("pcfradius", &dirLight->mShadow->mPcfRadius, 0.0f, 1.0f, "%.4f");
+
+    int width = dirLight->mShadow->mRenderTarget->mWidth;
+    int height = dirLight->mShadow->mRenderTarget->mHeight;
+    if (ImGui::SliderInt("FBO Width", &width, 1, 4096) ||
+        ImGui::SliderInt("FBO Height", &height, 1, 4096)) {
+        dirLight->mShadow->sentRenderTargetSize(width, height);
+    }
+
     // ImGui::ColorEdit3("Clear", (float*)&dirLight->mLightColor);
     ImGui::End();
 

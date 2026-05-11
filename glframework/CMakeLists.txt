@@ -34,6 +34,10 @@ add_library(glframework shader.cpp
         light/pointlight.cpp
         light/pointlight.h
         material/advanced/phongshadowmapmaterial.cpp
-        material/advanced/phongshadowmapmaterial.h)
+        material/advanced/phongshadowmapmaterial.h
+        light/shadow/shadow.cpp
+        light/shadow/shadow.h
+        light/shadow/directionallightshadow.cpp
+        light/shadow/directionallightshadow.h)
 target_include_directories(glframework PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(glframework glad glfw lwapp glm camera)

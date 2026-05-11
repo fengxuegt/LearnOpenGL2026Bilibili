@@ -25,7 +25,6 @@ public:
     void renderObject(Object *object, Camera *camera, DirectionalLight *directionalLight, AmbientLight *ambientLight);
 
     void renderShadowMap(const std::vector<Mesh*> &meshes, DirectionalLight *directionalLight, FrameBuffer *fbo);
-    glm::mat4 getLightMatrix(DirectionalLight *directional_light);
 
 private:
     Shader* pickShader(MaterialType type);
@@ -48,7 +47,7 @@ private:
     Shader *mShadowShader{nullptr};
 public:
     std::vector<Mesh*> mOpacityObjects{};
-    FrameBuffer *mShadowFBO{nullptr};
+    // FrameBuffer *mShadowFBO{nullptr};
 
 
 };
