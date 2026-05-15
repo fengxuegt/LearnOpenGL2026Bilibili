@@ -10,7 +10,7 @@
 class FrameBuffer {
 public:
     static FrameBuffer* createShadowFbo(int width, int height);
-
+    static FrameBuffer* createMultiSampleFbo(unsigned int width, unsigned int height, unsigned int samples);
 
     FrameBuffer(int width, int height);
     FrameBuffer();

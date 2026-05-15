@@ -378,6 +378,12 @@ void Renderer::renderShadowMap(const std::vector<Mesh *> &meshes, DirectionalLig
 
 }
 
+void Renderer::msaaResolve(FrameBuffer *src, FrameBuffer *dst) {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, src->mFbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst->mFbo);
+    glBlitFramebuffer(0, 0, src->mWidth, src->mHeight,  0, 0, dst->mWidth, dst->mHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+}
+
 Shader * Renderer::pickShader(MaterialType type) {
     Shader *resultShader = nullptr;
     switch (type) {

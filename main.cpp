@@ -44,7 +44,8 @@ glm::mat4 transMatBox(1.0f);
 Geometry *plane = nullptr;
 Geometry *box = nullptr;
 Geometry *sphere = nullptr;
-FrameBuffer *fbo = nullptr;
+FrameBuffer *fboMultisample = nullptr;
+FrameBuffer *fboResolve = nullptr;
 PhongShadowMapMaterial *phongShadowMapMaterial = nullptr;
 
 DirectionalLight *dirLight = nullptr;
@@ -94,7 +95,8 @@ void prepareCamera() {
 
 void prepare() {
     // glEnable(GL_FRAMEBUFFER_SRGB);
-    fbo = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
+    fboMultisample = FrameBuffer::createMultiSampleFbo(LWAPP->getWidth(),LWAPP->getHeight(), 4);
+    fboResolve = new FrameBuffer(LWAPP->getWidth(), LWAPP->getHeight());
     renderer = new Renderer();
     offScene = new Scene();
     onScene = new Scene();
@@ -145,7 +147,7 @@ void prepare() {
     // pass 02
     Geometry * geometry = Geometry::createScreenPlane();
     auto * material = new ScreenPlaneMaterial();
-    material->mDiffuse = fbo->mColorAttachment;
+    material->mDiffuse = fboResolve->mColorAttachment;
     // material->mDiffuse = renderer->mShadowFBO->mDepthAttachment;
     Mesh *plane = new Mesh(geometry, material);
     onScene->addChild(plane);
@@ -183,7 +185,7 @@ void renderIMGUI() {
     ImGui::Button("Test Button", ImVec2(20, 20));
     ImGui::SliderFloat("bias", &dirLight->mShadow->mBias, 0.0f, 0.01f, "%.4f");
     ImGui::SliderFloat("tightness", &dirLight->mShadow->mDiskTightness, 0.0f, 5.0f, "%.3f");
-    ImGui::SliderFloat("pcfradius", &dirLight->mShadow->mPcfRadius, 0.0f, 1.0f, "%.4f");
+    ImGui::SliderFloat("pcfradius", &dirLight->mShadow->mPcfRadius, 0.0f, 8.0f, "%.2f");
 
     int width = dirLight->mShadow->mRenderTarget->mWidth;
     int height = dirLight->mShadow->mRenderTarget->mHeight;
@@ -220,7 +222,8 @@ int main() {
     glViewport(0, 0, 2560, 1440);
     while (LWAPP->update()) {
         cameraControl->update();
-        renderer->render(offScene, camera, dirLight, ambLight, fbo->mFbo);
+        renderer->render(offScene, camera, dirLight, ambLight, fboMultisample->mFbo);
+        renderer->msaaResolve(fboMultisample, fboResolve);
         renderer->render(onScene, camera, dirLight, ambLight, 0);
         renderIMGUI();
     }

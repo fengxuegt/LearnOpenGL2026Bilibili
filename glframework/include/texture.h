@@ -23,6 +23,7 @@ public:
 	static Texture* createColorAttachment(int width, int height, int unitID);
 	static Texture* createDepthAttachment(int width, int height, int unitID);
 	static Texture* createDepthStencilAttachment(int width, int height, int unitID);
+	static Texture* createMultisampleTexture(int width, int height, int samples, int format, int unitID);
 
 	int getTextureID() const { return mTextureID; }
 

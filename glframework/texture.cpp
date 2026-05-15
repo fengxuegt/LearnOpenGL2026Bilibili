@@ -58,10 +58,8 @@ Texture * Texture::createDepthAttachment(int width, int height, int unitID) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    GLfloat borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     depthAttachment->mTextureID = textureID;
     depthAttachment->mWidth = width;
@@ -82,6 +80,22 @@ Texture * Texture::createDepthStencilAttachment(int width, int height, int unitI
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     return depthAttachment;
+}
+
+Texture * Texture::createMultisampleTexture(int width, int height, int samples, int format, int unitID) {
+    Texture *texture = new Texture();
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureID);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_TRUE);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+    texture->mWidth = width;
+    texture->mHeight = height;
+    texture->mTextureID = textureID;
+    texture->mUnitID = unitID;
+    texture->mTextureTarget = GL_TEXTURE_2D_MULTISAMPLE;
+    return texture;
 }
 
 Texture::Texture(const std::string &path, int unitID, unsigned int internalFormat) {

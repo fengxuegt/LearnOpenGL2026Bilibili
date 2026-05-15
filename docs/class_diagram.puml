@@ -1,0 +1,283 @@
+@startuml LearnOpenGL_Core_Class_Diagram
+title LearnOpenGL Core Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+package "Application" {
+  class Application {
+    - GLFWwindow* mWindow
+    - int mWidth
+    - int mHeight
+    + init(title, width, height)
+    + update()
+    + destroy()
+    + getWindow()
+    + getInstance()
+  }
+}
+
+package "Scene Graph" {
+  enum ObjectType {
+    Mesh
+    Object
+    Scene
+    InstanceMesh
+  }
+
+  class Object {
+    # vec3 mPosition
+    # vec3 mScale
+    # vector<Object*> mChildren
+    # Object* mParent
+    # ObjectType mType
+    + addChild(Object*)
+    + getChildren()
+    + getModelMatrixAPI()
+    + getDirection()
+  }
+
+  class Scene
+  class Mesh {
+    + Geometry* mGeometry
+    + Material* mMaterial
+  }
+  class InstancedMesh {
+    + mat4* mModelMatrices
+    + unsigned int mInstanceCount
+    + GLuint mModelMatrixVBO
+    + updateModelMatrices()
+  }
+
+  Object <|-- Scene
+  Object <|-- Mesh
+  Mesh <|-- InstancedMesh
+  Object "1" o-- "0..*" Object : children
+  Object --> ObjectType
+  Mesh --> Geometry
+  Mesh --> Material
+}
+
+package "Resources" {
+  class Geometry {
+    + GLuint mVao
+    + GLuint mEbo
+    + GLuint mIndicesCount
+    + createBox(size)
+    + createSphere(size)
+    + createPlane(width, height)
+    + createNormapPlane()
+    + createScreenPlane()
+    + getVao()
+    + getIndicesCount()
+  }
+
+  class Texture {
+    - GLuint mTextureID
+    - GLuint mUnitID
+    - int mTextureTarget
+    + Bind()
+    + setUnit(unit)
+    + createColorAttachment(width, height, unit)
+    + createDepthAttachment(width, height, unit)
+  }
+
+  class Shader {
+    - GLuint mProgram
+    + useProgram()
+    + unuseProgram()
+    + setUniformInt(name, value)
+    + setUniformFloat(name, value)
+    + setUniformMat4(name, matrix)
+    + setUniformVec3Float(name, vec)
+  }
+
+  class FrameBuffer {
+    + int mWidth
+    + int mHeight
+    + GLuint mFbo
+    + Texture* mColorAttachment
+    + Texture* mDepthStencilAttachment
+    + Texture* mDepthAttachment
+    + createShadowFbo(width, height)
+  }
+
+  FrameBuffer o-- Texture : attachments
+}
+
+package "Material System" {
+  enum MaterialType {
+    PhongMaterial
+    WhiteMaterial
+    ScreenPlaneMaterial
+    CubeMaterial
+    PhongEnvMaterial
+    PhongInstanceMaterial
+    CubeBallMaterial
+    PhongNormalMapMaterial
+    PhongParallaxMapMaterial
+    PhongShadowMapMaterial
+  }
+
+  class Material {
+    + MaterialType mType
+    + bool mDepthTest
+    + GLenum mDepthFun
+    + bool mDepthWrite
+    + getType()
+  }
+
+  class PhongMaterial {
+    + Texture* mDiffuse
+    + Texture* mSpecularMask
+    + float mShininess
+  }
+  class PhongShadowMapMaterial {
+    + Texture* mDiffuse
+    + Texture* mSpecularMask
+    + float mShininess
+  }
+  class PhongNormalMapMaterial {
+    + Texture* mDiffuse
+    + Texture* mNormalMap
+    + float mShininess
+  }
+  class PhongParallaxMapMaterial {
+    + Texture* mDiffuse
+    + Texture* mNormalMap
+    + Texture* mParallaxMap
+    + float mHeightScale
+  }
+  class PhongEnvMaterial {
+    + Texture* mDiffuse
+    + Texture* mCubeMap
+    + float mShininess
+  }
+  class PhongInstanceMaterial {
+    + Texture* mDiffuse
+    + float mShininess
+  }
+  class ScreenPlaneMaterial {
+    + Texture* mDiffuse
+  }
+  class CubeMaterial {
+    + Texture* mDiffuse
+  }
+  class CubeBallMaterial {
+    + Texture* mDiffuse
+  }
+  class WhiteMaterial
+
+  Material <|-- PhongMaterial
+  Material <|-- PhongShadowMapMaterial
+  Material <|-- PhongNormalMapMaterial
+  Material <|-- PhongParallaxMapMaterial
+  Material <|-- PhongEnvMaterial
+  Material <|-- PhongInstanceMaterial
+  Material <|-- ScreenPlaneMaterial
+  Material <|-- CubeMaterial
+  Material <|-- CubeBallMaterial
+  Material <|-- WhiteMaterial
+  Material --> MaterialType
+  Material ..> Texture : subclasses bind
+}
+
+package "Camera" {
+  class Camera {
+    + vec3 mPosition
+    + vec3 mUp
+    + vec3 mRight
+    + getViewMatrix()
+    + getProjectionMatrix()
+    + scale()
+  }
+  class PerspectiveCamera {
+    + float mFov
+    + float mAspect
+  }
+  class OrthographicCamera {
+    + float mLeft
+    + float mRight
+    + float mBottom
+    + float mTop
+  }
+  class CameraControl {
+    + Camera* mCamera
+    + float mSensitivity
+    + onMouse()
+    + onCursor()
+    + onKey()
+    + onScroll()
+    + update()
+  }
+  class GameCameraControl {
+    - float mPitch
+    - float mSpeed
+  }
+  class TrackBallCameraControl
+
+  Camera <|-- PerspectiveCamera
+  Camera <|-- OrthographicCamera
+  CameraControl <|-- GameCameraControl
+  CameraControl <|-- TrackBallCameraControl
+  CameraControl --> Camera
+}
+
+package "Lighting and Shadow" {
+  class Light {
+    + vec3 mLightColor
+    + float mLightIntensity
+    + Shadow* mShadow
+  }
+  class DirectionalLight
+  class AmbientLight
+  class Shadow {
+    + Camera* mCamera
+    + FrameBuffer* mRenderTarget
+    + float mBias
+    + float mPcfRadius
+    + float mDiskTightness
+    + sentRenderTargetSize(width, height)
+  }
+  class DirectionalLightShadow {
+    + getLightMatrix(lightModelMatrix)
+  }
+
+  Object <|-- Light
+  Light <|-- DirectionalLight
+  Light <|-- AmbientLight
+  Shadow <|-- DirectionalLightShadow
+  Light o-- Shadow
+  Shadow o-- Camera
+  Shadow o-- FrameBuffer
+}
+
+package "Renderer" {
+  class Renderer {
+    - vector<Mesh*> mOpacityObjects
+    - Shader* mPhongShader
+    - Shader* mPhongShadowMapShader
+    - Shader* mShadowShader
+    + render(Scene*, Camera*, DirectionalLight*, AmbientLight*, fbo)
+    + renderObject(Object*, Camera*, DirectionalLight*, AmbientLight*)
+    + renderShadowMap(meshes, DirectionalLight*, FrameBuffer*)
+    - projectObject(Object*)
+    - pickShader(MaterialType)
+    - setDepthState(Material*)
+  }
+
+  Renderer --> Scene
+  Renderer --> Mesh
+  Renderer --> Camera
+  Renderer --> DirectionalLight
+  Renderer --> AmbientLight
+  Renderer o-- Shader
+}
+
+Application ..> Renderer
+Application ..> Scene
+Application ..> FrameBuffer
+Application ..> GameCameraControl
+
+@enduml

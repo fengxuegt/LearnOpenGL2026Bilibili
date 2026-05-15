@@ -18,7 +18,7 @@ public:
     Camera *mCamera{nullptr};
     FrameBuffer *mRenderTarget{nullptr};
     float mBias{0.0003f};
-    float mPcfRadius{0.0f};
+    float mPcfRadius{2.0f};
     float mDiskTightness{1.0f};
 
 

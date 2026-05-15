@@ -1,0 +1,138 @@
+@startuml LearnOpenGL_Render_Flow
+title LearnOpenGL Render Flow
+
+skinparam shadowing false
+skinparam activity {
+  BackgroundColor #F9FAFB
+  BorderColor #4B5563
+  FontColor #111827
+}
+
+start
+
+:Application::init();
+:initIMGUI();
+:prepare();
+note right
+Create:
+- Renderer
+- offScene / onScene
+- main FrameBuffer
+- meshes and materials
+- DirectionalLight with DirectionalLightShadow
+- AmbientLight
+end note
+
+:prepareCamera();
+note right
+Create PerspectiveCamera
+and GameCameraControl.
+end note
+
+while (LWAPP->update()) is (frame)
+  :cameraControl->update();
+
+  partition "Pass 1: render offScene to custom FBO" {
+    :Renderer::render(offScene, camera, dirLight, ambLight, fbo->mFbo);
+    :glBindFramebuffer(fbo->mFbo);
+    :Enable depth test;
+    :Clear color and depth;
+    :projectObject(offScene);
+    note right
+    Traverse scene graph and collect
+    Mesh / InstancedMesh into mOpacityObjects.
+    end note
+
+    if (scene contains only ScreenPlaneMaterial?) then (yes)
+      :Skip shadow map pass;
+    else (no)
+      partition "Shadow Map Pass" {
+        :Save current framebuffer and viewport;
+        :Bind directionalLight->mShadow->mRenderTarget;
+        :Viewport = shadow FBO size;
+        :Clear depth buffer;
+        :lightMatrix = shadow->getLightMatrix(light model matrix);
+        :Use assets/shaders/advanced/shadow.*;
+        while (mesh in mOpacityObjects) is (next)
+          :Bind mesh VAO;
+          :Set modelMatrix;
+          if (mesh is InstancedMesh?) then (yes)
+            :glDrawElementsInstanced();
+          else (no)
+            :glDrawElements();
+          endif
+        endwhile
+        :Unuse shadow shader;
+        :Restore previous framebuffer and viewport;
+      }
+    endif
+
+    while (object in mOpacityObjects) is (next)
+      partition "Main Object Pass" {
+        :Renderer::renderObject(object, camera, dirLight, ambLight);
+        :Read mesh Geometry and Material;
+        :setDepthState(material);
+        :shader = pickShader(material->getType());
+        :shader->useProgram();
+
+        if (MaterialType == PhongShadowMapMaterial) then (shadowed phong)
+          :Bind diffuse texture to unit 0;
+          :Bind specular mask to unit 1;
+          :Bind shadow depth texture to unit 2;
+          :Set viewMat / projectionMat / transMat / normalMat;
+          :Set lightMatrix;
+          :Set bias / pcfRadius / diskTightness;
+          :Set light, ambient, camera and shininess uniforms;
+          note right
+          Fragment shader samples shadowMapSampler
+          and applies PCF in phongshadow.frag.
+          end note
+        elseif (MaterialType == ScreenPlaneMaterial) then (screen plane)
+          :Bind diffuse texture;
+          :Set diffuse sampler;
+        elseif (MaterialType == CubeMaterial or CubeBallMaterial) then (skybox)
+          :Move mesh to camera position;
+          :Set view/projection/model matrices;
+          :Bind cubemap texture;
+        else (other material)
+          :Bind material textures;
+          :Set common camera/light/model uniforms;
+        endif
+
+        :Bind geometry VAO;
+        if (object is InstancedMesh?) then (yes)
+          :glDrawElementsInstanced();
+        else (no)
+          :glDrawElements();
+        endif
+        :shader->unuseProgram();
+      }
+    endwhile
+  }
+
+  partition "Pass 2: render onScene to default framebuffer" {
+    :Renderer::render(onScene, camera, dirLight, ambLight, 0);
+    :glBindFramebuffer(0);
+    :Clear default framebuffer;
+    :projectObject(onScene);
+    :Skip shadow pass because onScene is screen plane only;
+    :Render ScreenPlaneMaterial;
+    note right
+    ScreenPlaneMaterial->mDiffuse points to
+    fbo->mColorAttachment, so this pass displays
+    the offscreen render result.
+    end note
+  }
+
+  :renderIMGUI();
+  note right
+  ImGui edits shadow parameters:
+  bias, diskTightness, pcfRadius,
+  and shadow FBO width/height.
+  end note
+endwhile
+
+:LWAPP->destroy();
+stop
+
+@enduml

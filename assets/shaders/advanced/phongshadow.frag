@@ -64,10 +64,13 @@ float pcf(vec3 normal, vec3 lightDirection) {
     // 找到当前像素在ShadowMap上的UV
     vec3 projCoord = lightNDC * 0.5 + 0.5;
     vec2 uv = projCoord.xy;
+    if (projCoord.z > 1.0 || uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        return 0.0;
+    }
     // 使用UV对Shadow Map进行采样，得到ClosestDepth
     float depth = projCoord.z;
     poissonDiskSamples(uv);
-    vec2 texelSize = 1.0 / textureSize(shadowMapSampler, 0);
+    vec2 texelSize = 1.0 / vec2(textureSize(shadowMapSampler, 0));
     float sum = 0.0f;
 //    for (int x = -1; x <= 1; x++) {
 //        for (int y = -1; y <= 1; y++) {
@@ -76,7 +79,7 @@ float pcf(vec3 normal, vec3 lightDirection) {
 //        }
 //    }
     for (int i = 0; i < NUM_SAMPLES; i++) {
-        float cloestDepth = texture(shadowMapSampler, uv + disk[i] * pcfRadius).r;
+        float cloestDepth = texture(shadowMapSampler, uv + disk[i] * pcfRadius * texelSize).r;
         sum += cloestDepth < (depth - autoBias(normal, lightDirection)) ? 1.0 : 0.0;
     }
     return sum / float(NUM_SAMPLES);

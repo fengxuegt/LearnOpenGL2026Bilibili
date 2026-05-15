@@ -26,6 +26,7 @@ public:
 
     void renderShadowMap(const std::vector<Mesh*> &meshes, DirectionalLight *directionalLight, FrameBuffer *fbo);
 
+    void msaaResolve(FrameBuffer * src, FrameBuffer * dst);
 private:
     Shader* pickShader(MaterialType type);
     void setDepthState(Material *material);

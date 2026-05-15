@@ -18,6 +18,28 @@ FrameBuffer * FrameBuffer::createShadowFbo(int width, int height) {
 
 }
 
+FrameBuffer * FrameBuffer::createMultiSampleFbo(unsigned int width, unsigned int height, unsigned int samples) {
+    FrameBuffer * fb = new FrameBuffer();
+    unsigned int fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    auto colorAttachment = Texture::createMultisampleTexture(width, height, samples, GL_RGBA, 0);
+    auto dsAttachment = Texture::createMultisampleTexture(width, height, samples, GL_DEPTH24_STENCIL8, 0);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, colorAttachment->getTextureID(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, dsAttachment->getTextureID(), 0);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    fb->mFbo = fbo;
+    fb->mDepthStencilAttachment = dsAttachment;
+    fb->mColorAttachment = colorAttachment;
+    fb->mWidth = width;
+    fb->mHeight = height;
+    return fb;
+}
+
 FrameBuffer::FrameBuffer(int width, int height) {
     mWidth = width;
     mHeight = height;
